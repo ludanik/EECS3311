@@ -74,7 +74,7 @@ class ManagementPanel extends JPanel {
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        spacePanel.add(new JLabel("Space ID:"), gbc);
+        spacePanel.add(new JLabel("Space ID (1-100):"), gbc);
 
         gbc.gridx = 1;
         spaceIdField = new JTextField(10);
@@ -108,8 +108,7 @@ class ManagementPanel extends JPanel {
         spacePanel.add(disableSpaceButton, gbc);
 
         // User management panel (placeholder)
-        JPanel userPanel = new JPanel();
-        userPanel.add(new JLabel("User management will be implemented in the next phase"));
+        JPanel userPanel = new UserValidationPanel();
 
         // Add panels to tabbed pane
         tabbedPane.addTab("Manage Lots", lotPanel);
