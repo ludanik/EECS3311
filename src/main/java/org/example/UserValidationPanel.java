@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
 
 public class UserValidationPanel extends JPanel {
     private JTable userTable;
@@ -92,7 +93,7 @@ public class UserValidationPanel extends JPanel {
         @Override
         public Object getCellEditorValue() {
             if (clicked) {
-                // Retrieve the user for the clicked row
+                // Retrieve the user fqor the clicked row
                 User user = tableModel.getUserAt(row);
                 if (user != null) {
                     if (isApprove) {
@@ -114,8 +115,6 @@ public class UserValidationPanel extends JPanel {
                                     "Success", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
-                    // Refresh the user list after action
-                    refreshUserList();
                 }
             }
             clicked = false;
