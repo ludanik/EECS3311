@@ -26,8 +26,8 @@ class MainFrame extends JFrame {
         // Initialize simulated database
         userDatabase = new HashMap<>();
         // Add a default manager account
-        userDatabase.put("admin@yorku.ca", new User("admin@yorku.ca", "x", UserType.MANAGER));
-
+        userDatabase.put("admin@yorku.ca", new User("admin@yorku.ca", "meow", "x", UserType.MANAGER, false));
+        //    public User(String email, String username, String password, UserType userType, boolean validation) {
         // Initialize UI components
         initComponents();
     }
@@ -79,7 +79,7 @@ class MainFrame extends JFrame {
         }
 
         // Create and store new user
-        User newUser = new User(email, password, userType);
+        User newUser = new User(email, "", password, userType, false);
         userDatabase.put(email, newUser);
 
         // For non-visitor accounts, set pending validation status

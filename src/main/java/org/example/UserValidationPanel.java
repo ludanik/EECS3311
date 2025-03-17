@@ -20,17 +20,8 @@ public class UserValidationPanel extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         add(titleLabel, BorderLayout.NORTH);
 
-        // For demonstration, create a dummy list of pending users.
-        // In a real application, you would query the DB.
-        ArrayList<User> dummyUsers = new ArrayList<>();
-        dummyUsers.add(new User("meow@gmail.com", "meow", UserType.STUDENT));
-        dummyUsers.add(new User("meow@gmail.com", "meow", UserType.STUDENT));
-        dummyUsers.add(new User("meow@gmail.com", "meow", UserType.STUDENT));
-        dummyUsers.add(new User("meow@gmail.com", "meow", UserType.STUDENT));
-        dummyUsers.add(new User("meow@gmail.com", "meow", UserType.STUDENT));
-
         // Create table model with the dummy data
-        tableModel = new UserTableModel(dummyUsers);
+        tableModel = new UserTableModel(UserDAO.getPendingUsers());
 
         // Create user table with the table model
         userTable = new JTable(tableModel);

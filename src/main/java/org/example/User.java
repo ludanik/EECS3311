@@ -2,15 +2,17 @@ package org.example;
 
 class User {
     private String email;
+    private String username;
     private String password;
     private UserType userType;
     private boolean pendingValidation;
 
-    public User(String email, String password, UserType userType) {
+    public User(String email, String username, String password, UserType userType, boolean validation) {
+        this.username = username;
         this.email = email;
         this.password = password;
         this.userType = userType;
-        this.pendingValidation = (userType != UserType.VISITOR);
+        this.pendingValidation = validation;
     }
 
     public String getEmail() {
