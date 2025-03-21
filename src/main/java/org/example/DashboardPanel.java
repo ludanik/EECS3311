@@ -63,7 +63,7 @@ class DashboardPanel extends JPanel {
 
         // Create content panels
         homePanel = createHomePanel();
-        bookingPanel = new BookingPanel();
+        bookingPanel = new BookingPanel(mainFrame);
         managementPanel = new ManagementPanel();
 
         contentPanel.add(homePanel, "HOME");

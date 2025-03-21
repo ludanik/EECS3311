@@ -61,6 +61,10 @@ public class UserValidationPanel extends JPanel {
         private boolean clicked;
         private int row;
 
+        public void refreshUserList() {
+            tableModel.updateData(UserDAO.getPendingUsers());
+        }
+
         public ButtonEditor(JCheckBox checkBox, boolean isApprove) {
             super(checkBox);
             this.isApprove = isApprove;
@@ -92,7 +96,7 @@ public class UserValidationPanel extends JPanel {
                                 "Approve user: " + user.getEmail() + " (" + user.getUserType() + ")?",
                                 "Confirm Approval", JOptionPane.YES_NO_OPTION);
                         if (confirm == JOptionPane.YES_OPTION) {
-                            //mainFrame.validateUser(user.getEmail(), true);
+                            UserDAO.approveUser(user);
                             JOptionPane.showMessageDialog(button, "User approved successfully",
                                     "Success", JOptionPane.INFORMATION_MESSAGE);
                         }
@@ -101,11 +105,12 @@ public class UserValidationPanel extends JPanel {
                                 "Deny user: " + user.getEmail() + " (" + user.getUserType() + ")?\nThis will delete the account.",
                                 "Confirm Denial", JOptionPane.YES_NO_OPTION);
                         if (confirm == JOptionPane.YES_OPTION) {
-                            //mainFrame.validateUser(user.getEmail(), false);
+                            UserDAO.deleteUser(user);
                             JOptionPane.showMessageDialog(button, "User denied and removed from system",
                                     "Success", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
+                    refreshUserList();
                 }
             }
             clicked = false;

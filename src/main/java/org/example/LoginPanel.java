@@ -71,6 +71,11 @@ class LoginPanel extends JPanel {
             return;
         }
 
+        if (mainFrame.authenticateUser(email, password) && UserDAO.getUser(email).isPendingValidation()) {
+            JOptionPane.showMessageDialog(this, "Account pending validation, please contact manager", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (mainFrame.authenticateUser(email, password)) {
             // Clear fields
             emailField.setText("");
@@ -81,5 +86,6 @@ class LoginPanel extends JPanel {
         } else {
             JOptionPane.showMessageDialog(this, "Invalid email or password", "Login Error", JOptionPane.ERROR_MESSAGE);
         }
+
     }
 }

@@ -1,5 +1,7 @@
 package org.example;
 
+import com.sun.tools.javac.Main;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -7,11 +9,14 @@ import java.awt.*;
 class BookingPanel extends JPanel {
     private JComboBox<String> parkingLotComboBox;
     private JTextField licensePlateField;
+    private JTextField parkingSpotField;
     private JSpinner hoursSpinner;
     private JLabel costLabel;
     private JButton bookButton;
+    private MainFrame mainFrame;
 
-    public BookingPanel() {
+    public BookingPanel(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
         // Create header
@@ -31,12 +36,21 @@ class BookingPanel extends JPanel {
         formPanel.add(new JLabel("Parking Lot:"), gbc);
 
         gbc.gridx = 1;
+        // Need to populate this list from DB
         parkingLotComboBox = new JComboBox<>(new String[] {"Lot A", "Lot B", "Lot C"});
         formPanel.add(parkingLotComboBox, gbc);
 
-        // License Plate
         gbc.gridx = 0;
         gbc.gridy = 1;
+        formPanel.add(new JLabel("Parking Space (0-100):"), gbc);
+
+        gbc.gridx = 1;
+        parkingSpotField = new JTextField(15);
+        formPanel.add(parkingSpotField, gbc);
+
+        // License Plate
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         formPanel.add(new JLabel("License Plate:"), gbc);
 
         gbc.gridx = 1;
@@ -45,25 +59,40 @@ class BookingPanel extends JPanel {
 
         // Hours
         gbc.gridx = 0;
-        gbc.gridy = 2;
-        formPanel.add(new JLabel("Duration (hours):"), gbc);
+        gbc.gridy = 3;
+        formPanel.add(new JLabel("Duration (hours) (max 24):"), gbc);
 
         gbc.gridx = 1;
         hoursSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 24, 1));
+        ((JSpinner.DefaultEditor) hoursSpinner.getEditor()).getTextField().setEditable(false);
         formPanel.add(hoursSpinner, gbc);
 
         // Cost display
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         formPanel.add(new JLabel("Estimated Cost:"), gbc);
 
         gbc.gridx = 1;
-        costLabel = new JLabel("$5.00 (Deposit: $5.00)");
+        costLabel = new JLabel();
         formPanel.add(costLabel, gbc);
+
+        final double[] hourlyRate = {0};
+
+        updateCostLabel(hourlyRate[0], hourlyRate[0], (Integer) hoursSpinner.getValue(), costLabel);
+
+        hoursSpinner.addChangeListener(e -> {
+            if (mainFrame.getCurrentUser() != null) {
+                hourlyRate[0] = mainFrame.getCurrentUser().getUserType().getHourlyRate();
+            } else {
+                hourlyRate[0] = 0;
+            }
+            int hours = (Integer) hoursSpinner.getValue();
+            updateCostLabel(hourlyRate[0], hourlyRate[0], hours, costLabel);
+        });
 
         // Book button
         gbc.gridx = 1;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         bookButton = new JButton("Book Space");
         bookButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(this,
@@ -78,5 +107,10 @@ class BookingPanel extends JPanel {
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
         wrapperPanel.add(formPanel);
         add(wrapperPanel, BorderLayout.CENTER);
+    }
+
+    private void updateCostLabel(double rate, double deposit, int hours, JLabel label) {
+        double cost = rate * hours;
+        label.setText(String.format("$%.2f (Deposit: $%.2f)", cost, deposit));
     }
 }

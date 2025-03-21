@@ -14,20 +14,14 @@ class MainFrame extends JFrame {
     private DashboardPanel dashboardPanel;
     private User currentUser;
 
-    // Simulated user database
-    private Map<String, User> userDatabase;
-
     public MainFrame() {
         setTitle("YorkU Parking Booking System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
         setLocationRelativeTo(null);
 
-        // Initialize simulated database
-        userDatabase = new HashMap<>();
         // Add a default manager account
-        userDatabase.put("admin@yorku.ca", new User("admin@yorku.ca", "meow", "x", UserType.MANAGER, false));
-        //    public User(String email, String username, String password, UserType userType, boolean validation) {
+        UserDAO.addUser(new User("admin@yorku.ca", "x",  UserType.SUPERMANAGER, false));
         // Initialize UI components
         initComponents();
     }
@@ -58,7 +52,7 @@ class MainFrame extends JFrame {
     }
 
     public boolean authenticateUser(String email, String password) {
-        User user = userDatabase.get(email);
+        User user = UserDAO.getUser(email);
         if (user != null && user.getPassword().equals(password)) {
             currentUser = user;
             dashboardPanel.updateForUser(currentUser);
@@ -69,7 +63,7 @@ class MainFrame extends JFrame {
 
     public boolean registerUser(String email, String password, UserType userType) {
         // Check if user already exists
-        if (userDatabase.containsKey(email)) {
+        if (UserDAO.getUser(email) != null) {
             return false;
         }
 
@@ -79,13 +73,14 @@ class MainFrame extends JFrame {
         }
 
         // Create and store new user
-        User newUser = new User(email, "", password, userType, false);
-        userDatabase.put(email, newUser);
+        User newUser = new User(email,  password, userType, false);
 
         // For non-visitor accounts, set pending validation status
         if (userType != UserType.VISITOR) {
             newUser.setPendingValidation(true);
         }
+
+        UserDAO.addUser(newUser);
 
         return true;
     }
