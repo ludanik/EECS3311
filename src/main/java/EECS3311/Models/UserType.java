@@ -1,6 +1,6 @@
-package org.example;
+package EECS3311.Models;
 
-enum UserType {
+public enum UserType {
     STUDENT("Student", 5.0),
     FACULTY("Faculty", 8.0),
     STAFF("Staff", 10.0),

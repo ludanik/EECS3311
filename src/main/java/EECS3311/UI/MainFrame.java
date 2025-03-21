@@ -1,9 +1,9 @@
-package org.example;
+package EECS3311.UI;
 
+import EECS3311.DAO.*;
+import EECS3311.Models.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
 
 // Main frame class
 class MainFrame extends JFrame {

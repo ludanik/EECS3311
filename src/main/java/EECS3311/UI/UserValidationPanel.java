@@ -1,12 +1,11 @@
-package org.example;
+package EECS3311.UI;
 
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.sql.*;
+import EECS3311.DAO.*;
+import EECS3311.Models.*;
 
 public class UserValidationPanel extends JPanel {
     private JTable userTable;

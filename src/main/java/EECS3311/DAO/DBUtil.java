@@ -1,4 +1,4 @@
-package org.example;
+package EECS3311.DAO;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import java.sql.*;

@@ -1,5 +1,6 @@
-package org.example;
+package EECS3311.DAO;
 
+import EECS3311.Models.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,6 +19,7 @@ public class UserDAO {
                 UserType t = UserType.valueOf(rs.getString("user_type").toUpperCase());
                 boolean pendingValidation = rs.getString("status").equals("PENDING");
                 user = new User(rs.getString("email"), rs.getString("password"),  t, pendingValidation);
+                user.setId(rs.getInt("id"));
             }
         }
         catch (Exception e) {
@@ -37,6 +39,7 @@ public class UserDAO {
                 UserType t = UserType.valueOf(rs.getString("user_type").toUpperCase());
                 boolean pendingValidation = rs.getString("status").equals("PENDING");
                 user = new User(rs.getString("email"), rs.getString("password"),  t, pendingValidation);
+                user.setId(rs.getInt("id"));
             }
         }
         catch (Exception e) {

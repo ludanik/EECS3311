@@ -1,4 +1,4 @@
-package org.example;
+package EECS3311.Models;
 import java.time.LocalDateTime;
 
 public class Booking {

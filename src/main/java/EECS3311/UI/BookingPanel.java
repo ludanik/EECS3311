@@ -1,7 +1,10 @@
-package org.example;
+package EECS3311.UI;
+
 
 import com.sun.tools.javac.Main;
 
+import EECS3311.DAO.*;
+import EECS3311.Models.*;
 import javax.swing.*;
 import java.awt.*;
 

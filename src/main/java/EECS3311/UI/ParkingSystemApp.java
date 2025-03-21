@@ -1,4 +1,4 @@
-package org.example;
+package EECS3311.UI;
 
 // Main application entry point
 import javax.swing.*;

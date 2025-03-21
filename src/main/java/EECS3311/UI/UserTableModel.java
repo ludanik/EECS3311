@@ -1,7 +1,9 @@
-package org.example;
+package EECS3311.UI;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
+import EECS3311.DAO.*;
+import EECS3311.Models.*;
 
 public class UserTableModel extends AbstractTableModel {
     private List<User> users;

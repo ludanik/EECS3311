@@ -1,6 +1,7 @@
-package org.example;
+package EECS3311.Models;
 
-class User {
+public class User {
+    private int id;
     private String email;
     private String password;
     private UserType userType;
@@ -32,4 +33,7 @@ class User {
     public void setPendingValidation(boolean pendingValidation) {
         this.pendingValidation = pendingValidation;
     }
+
+    public void setId(int id) { this.id = id; }
+    public int getId() { return this.id; }
 }

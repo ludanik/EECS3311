@@ -1,8 +1,10 @@
-package org.example;
+package EECS3311.UI;
 
 
 import javax.swing.*;
 import java.awt.*;
+import EECS3311.DAO.*;
+import EECS3311.Models.*;
 
 // Management Panel
 class ManagementPanel extends JPanel {

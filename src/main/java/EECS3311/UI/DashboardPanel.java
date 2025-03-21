@@ -1,5 +1,7 @@
-package org.example;
+package EECS3311.UI;
 
+import EECS3311.DAO.*;
+import EECS3311.Models.*;
 import javax.swing.*;
 import java.awt.*;
 
