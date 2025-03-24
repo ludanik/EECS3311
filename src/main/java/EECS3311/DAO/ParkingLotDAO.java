@@ -3,22 +3,25 @@ package EECS3311.DAO;
 import EECS3311.Models.*;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 
 public class ParkingLotDAO {
-
-    public static int getNextId() {
+    public static ArrayList<ParkingLot> getEnabledLots() {
+        ArrayList<ParkingLot> list = new ArrayList<>();
         try {
             Connection c = DBUtil.getConnection();
-            PreparedStatement stmt = c.prepareStatement("Select nextval(pg_get_serial_sequence('parkinglots', 'parking_lot_id')) as new_id;");
+            PreparedStatement stmt = c.prepareStatement("SELECT * FROM parkinglots WHERE status='enabled';");
+
             ResultSet rs = stmt.executeQuery();
-            rs.next();
-            return rs.getInt("new_id") + 1;
+            while (rs.next()) {
+                ParkingLot p = new ParkingLot(rs.getInt("parking_lot_id"), rs.getString("name"), true);
+                list.add(p);
+                System.out.println(p);
+            }
         }
         catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
-        return -1;
+        return list;
     }
 
     public static void addLot(ParkingLot p) {
@@ -108,5 +111,19 @@ public class ParkingLotDAO {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static int getNextId() {
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement stmt = c.prepareStatement("Select nextval(pg_get_serial_sequence('parkinglots', 'parking_lot_id')) as new_id;");
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+            return rs.getInt("new_id") + 1;
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        return -1;
     }
 }

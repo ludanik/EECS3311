@@ -2,19 +2,38 @@ package EECS3311.DAO;
 
 import EECS3311.Models.ParkingLot;
 import EECS3311.Models.ParkingSpace;
+import EECS3311.Models.ParkingStatus;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 public class ParkingSpaceDAO {
-    public static ParkingSpace getSpace() {
-        ParkingSpace p = null;
-        return p;
+    public static ArrayList<ParkingSpace> getAvailableSpaces(int parkingLotId) {
+        ArrayList<ParkingSpace> list = new ArrayList<>();
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement stmt = c.prepareStatement("SELECT * FROM parkingspaces WHERE status='available' AND parking_lot_id=?;");
+
+            stmt.setInt(1,parkingLotId);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ParkingSpace p = new ParkingSpace(parkingLotId, rs.getInt("space_number"), ParkingStatus.AVAILABLE);
+                list.add(p);
+                System.out.println(p);
+            }
+
+            list.sort(Comparator.comparingInt(ParkingSpace::getSpaceNumber));
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
-    public static void reserveSpace(ParkingSpace p) {}
-    public static void occupySpace(ParkingSpace p) {}
-    public static void vacateSpace(ParkingSpace p) {}
     public static void generateSpaces(ParkingLot p) {
         // TODO: check if spaces are already generated
         Connection c = null;
@@ -34,19 +53,70 @@ public class ParkingSpaceDAO {
             c.commit();
 
             System.out.printf("inserted 100 spaces");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             try {
                 c.rollback();
-            }
-            catch (Exception gg) {
+            } catch (Exception gg) {
                 gg.printStackTrace();
             }
         }
     }
-    public static void disableSpace(ParkingSpace p) {}
-    public static void enableSpace(ParkingSpace p) {
 
+    public static void disableSpace(int parkingLotId, int spaceNumber) {
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement updateStmt = c.prepareStatement("UPDATE parkingspaces SET status = ? WHERE parking_lot_id = ? AND space_number = ?;");
+            updateStmt.setString(1, "maintenance");
+            updateStmt.setInt(2, parkingLotId);
+            updateStmt.setInt(3, spaceNumber);
+            int rows = updateStmt.executeUpdate();
+            System.out.println(rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+    public static void enableSpace(int parkingLotId, int spaceNumber) {
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement updateStmt = c.prepareStatement("UPDATE parkingspaces SET status = ? WHERE parking_lot_id = ? AND space_number = ?;");
+            updateStmt.setString(1, "available");
+            updateStmt.setInt(2, parkingLotId);
+            updateStmt.setInt(3, spaceNumber);
+            int rows = updateStmt.executeUpdate();
+            System.out.println(rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void bookSpace(int parkingLotId, int spaceNumber) {
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement updateStmt = c.prepareStatement("UPDATE parkingspaces SET status = ? WHERE parking_lot_id = ? AND space_number = ?;");
+            updateStmt.setString(1, "booked");
+            updateStmt.setInt(2, parkingLotId);
+            updateStmt.setInt(3, spaceNumber);
+            int rows = updateStmt.executeUpdate();
+            System.out.println(rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void occupySpace(int parkingLotId, int spaceNumber) {
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement updateStmt = c.prepareStatement("UPDATE parkingspaces SET status = ? WHERE parking_lot_id = ? AND space_number = ?;");
+            updateStmt.setString(1, "occupied");
+            updateStmt.setInt(2, parkingLotId);
+            updateStmt.setInt(3, spaceNumber);
+            int rows = updateStmt.executeUpdate();
+            System.out.println(rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

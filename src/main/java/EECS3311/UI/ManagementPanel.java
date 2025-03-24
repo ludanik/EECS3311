@@ -127,12 +127,15 @@ class ManagementPanel extends JPanel {
         gbc.gridy = 2;
         enableSpaceButton = new JButton("Enable Space");
         enableSpaceButton.addActionListener(e -> {
-            String spaceId = spaceIdField.getText();
-            if (spaceId.isEmpty()) {
+            int lotId = lotNameToIdMap.get().get(parkingLotComboBox2.getSelectedItem());
+            int spaceId = Integer.parseInt(spaceIdField.getText());
+            if (spaceIdField.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please enter a space ID",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            ParkingSpaceDAO.enableSpace(lotId, spaceId);
             JOptionPane.showMessageDialog(this, "Space " + spaceId + " enabled successfully");
         });
         spacePanel.add(enableSpaceButton, gbc);
@@ -140,12 +143,15 @@ class ManagementPanel extends JPanel {
         gbc.gridx = 1;
         disableSpaceButton = new JButton("Disable Space");
         disableSpaceButton.addActionListener(e -> {
-            String spaceId = spaceIdField.getText();
-            if (spaceId.isEmpty()) {
+            int lotId = lotNameToIdMap.get().get(parkingLotComboBox2.getSelectedItem());
+            int spaceId = Integer.parseInt(spaceIdField.getText());
+            if (spaceIdField.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please enter a space ID",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            ParkingSpaceDAO.disableSpace(lotId, spaceId);
             JOptionPane.showMessageDialog(this, "Space " + spaceId + " disabled successfully");
         });
         spacePanel.add(disableSpaceButton, gbc);

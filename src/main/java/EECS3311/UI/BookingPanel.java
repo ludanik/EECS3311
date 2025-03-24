@@ -7,12 +7,16 @@ import EECS3311.DAO.*;
 import EECS3311.Models.*;
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 // Booking Panel
 class BookingPanel extends JPanel {
     private JComboBox<String> parkingLotComboBox;
     private JTextField licensePlateField;
-    private JTextField parkingSpotField;
+    private JComboBox<String> parkingSpaceComboBox;
     private JSpinner hoursSpinner;
     private JLabel costLabel;
     private JButton bookButton;
@@ -38,18 +42,38 @@ class BookingPanel extends JPanel {
         gbc.gridy = 0;
         formPanel.add(new JLabel("Parking Lot:"), gbc);
 
+        ArrayList<ParkingLot> lots = ParkingLotDAO.getEnabledLots();
+
+        String[] lotNames = lots.stream()
+                .map(lot -> lot.getName())
+                .toArray(String[]::new);
+
+        AtomicReference<HashMap<String, Integer>> lotNameToIdMap = new AtomicReference<>(new HashMap<>());
+        for (ParkingLot lot : lots) {
+            lotNameToIdMap.get().put(lot.getName(), lot.getId());
+        }
+
         gbc.gridx = 1;
-        // Need to populate this list from DB
-        parkingLotComboBox = new JComboBox<>(new String[] {"Lot A", "Lot B", "Lot C"});
+        parkingLotComboBox = new JComboBox<>(lotNames);
         formPanel.add(parkingLotComboBox, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        formPanel.add(new JLabel("Parking Space (0-100):"), gbc);
+        formPanel.add(new JLabel("Parking Space:"), gbc);
 
         gbc.gridx = 1;
-        parkingSpotField = new JTextField(15);
-        formPanel.add(parkingSpotField, gbc);
+        parkingSpaceComboBox = new JComboBox<>();
+        formPanel.add(parkingSpaceComboBox, gbc);
+
+        parkingLotComboBox.addActionListener(e -> {
+            ArrayList<ParkingSpace> spaces = ParkingSpaceDAO.getAvailableSpaces(lotNameToIdMap.get().get(parkingLotComboBox.getSelectedItem()));
+
+            parkingSpaceComboBox.removeAllItems();
+
+            for (ParkingSpace p : spaces) {
+                parkingSpaceComboBox.addItem(Integer.toString(p.getSpaceNumber()));
+            }
+        });
 
         // License Plate
         gbc.gridx = 0;
