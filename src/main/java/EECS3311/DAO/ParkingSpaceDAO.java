@@ -23,7 +23,7 @@ public class ParkingSpaceDAO {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                p = new ParkingSpace(rs.getInt("parking_lot_id"), rs.getInt("space_number"), ParkingStatus.valueOf(rs.getString("status")), rs.getInt("parking_space_id"));
+                p = new ParkingSpace(rs.getInt("parking_lot_id"), rs.getInt("space_number"), ParkingStatus.valueOf(rs.getString("status").toUpperCase()), rs.getInt("parking_space_id"));
                 System.out.println(p);
             }
         }

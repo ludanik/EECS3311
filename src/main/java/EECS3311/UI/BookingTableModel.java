@@ -2,12 +2,14 @@ package EECS3311.UI;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
+
+import EECS3311.DAO.ParkingLotDAO;
 import EECS3311.Models.Booking;
 
 public class BookingTableModel extends AbstractTableModel {
     private ArrayList<Booking> bookings;
     private final String[] columnNames = {
-            "ID", "User Email", "Parking Lot", "Space", "Start Time", "Duration", "Total Cost", "Status"
+            "Parking Lot", "Space", "Start Time", "End Time", "Total Cost", "Status", "ARRIVE", "EXTEND", "CANCEL"
     };
 
     public BookingTableModel(ArrayList<Booking> bookings) {
@@ -39,24 +41,33 @@ public class BookingTableModel extends AbstractTableModel {
         Booking booking = bookings.get(rowIndex);
         switch (columnIndex) {
             case 0:
-                return booking.getId();
+                return ParkingLotDAO.getLot(booking.getParkingSpace().getLotId()).getName();
             case 1:
-                return booking.getClient();
-            case 2:
-                // Assuming your ParkingSpace model has a method getLotName()
-                return booking.getParkingSpace().getLotId();
-            case 3:
                 return booking.getParkingSpace().getSpaceNumber();
-            case 4:
+            case 2:
                 return booking.getStartTime().toString();
-            case 5:
+            case 3:
                 return booking.getEndTime().toString();
-            case 6:
-                return booking.getTotalCost();
-            case 7:
+            case 4:
+                // Prepend a dollar sign to total cost.
+                return "$" + booking.getTotalCost();
+            case 5:
                 return booking.getStatus().toString();
+            case 6:
+                return "ARRIVE";
+            case 7:
+                return "EXTEND";
+            case 8:
+                return "CANCEL";
             default:
                 return null;
         }
+    }
+
+    // Optionally, override isCellEditable if you want only the button columns to be clickable.
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        // Only the last three columns (buttons) are editable (clickable).
+        return columnIndex >= 6;
     }
 }

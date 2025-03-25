@@ -46,7 +46,7 @@ public class BookingDAO {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                int id = rs.getInt("id");
+                int id = rs.getInt("booking_id");
                 User u = null;
 
                 ParkingSpace parkingSpace = ParkingSpaceDAO.getParkingSpace(rs.getInt("parking_space_id"));
@@ -60,7 +60,7 @@ public class BookingDAO {
 
                 int deposit = rs.getInt("deposit");
                 int totalCost = rs.getInt("total_cost");
-                BookingStatus status = BookingStatus.valueOf(rs.getString("status"));
+                BookingStatus status = BookingStatus.valueOf(rs.getString("status").toUpperCase());
                 String paymentMethod = rs.getString("payment_method");
 
                 Booking booking = new Booking(
