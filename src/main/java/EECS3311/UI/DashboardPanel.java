@@ -4,6 +4,7 @@ import EECS3311.DAO.*;
 import EECS3311.Models.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.print.Book;
 
 // Dashboard Panel
 class DashboardPanel extends JPanel {
@@ -41,7 +42,11 @@ class DashboardPanel extends JPanel {
         navPanel.add(homeButton);
 
         JButton bookingButton = new JButton("Book Parking");
-        bookingButton.addActionListener(e -> contentCardLayout.show(contentPanel, "BOOKING"));
+
+        bookingButton.addActionListener(e -> {
+            contentCardLayout.show(contentPanel, "BOOKING");
+        });
+
         navPanel.add(bookingButton);
 
         JButton myBookingsButton = new JButton("My Bookings");

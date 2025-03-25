@@ -95,7 +95,7 @@ class ManagementPanel extends JPanel {
         gbc.gridx = 2;
         disableLotButton = new JButton("Disable Lot");
         disableLotButton.addActionListener(e -> {
-            ParkingLotDAO.disableLot(lotNameToIdMap.get().get(parkingLotComboBox.getSelectedItem()));
+            ParkingLotDAO.disableLot(lotNameToIdMap.get().get(parkingLotComboBox.getSelectedItem().toString()));
             JOptionPane.showMessageDialog(this,
                     parkingLotComboBox.getSelectedItem() + " disabled successfully");
         });

@@ -5,7 +5,7 @@ public class Booking {
     private int id;
     private User client;
     private ParkingSpace parkingSpace;
-    private LocalDateTime startTime;
+    private double startTime;
     private int hours;
     private double deposit;
     private double totalCost;
@@ -13,7 +13,7 @@ public class Booking {
     private String paymentMethod;
     private BookingStatus status;
 
-    public Booking(int id, User client, ParkingSpace parkingSpace, LocalDateTime startTime, int hours, double deposit, double totalCost, int extendedHours, String paymentMethod, BookingStatus status) {
+    public Booking(int id, User client, ParkingSpace parkingSpace, double startTime, int hours, double deposit, double totalCost, int extendedHours, String paymentMethod, BookingStatus status) {
         this.id = id;
         this.client = client;
         this.parkingSpace = parkingSpace;
@@ -50,11 +50,11 @@ public class Booking {
         this.parkingSpace = parkingSpace;
     }
 
-    public LocalDateTime getStartTime() {
+    public double getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
+    public void setStartTime(double startTime) {
         this.startTime = startTime;
     }
 
