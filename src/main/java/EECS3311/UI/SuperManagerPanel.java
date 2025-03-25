@@ -6,95 +6,125 @@ import EECS3311.Models.UserType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Random;
 
-public class SuperManagerAccountGenerationPanel extends JPanel {
-    private JButton generateManagerButton;
-    private JTextArea infoArea;
+public class SuperManagerPanel extends JPanel {
 
-    public SuperManagerAccountGenerationPanel() {
-        // Use BorderLayout for the outer panel
+    private JTextField emailField;
+    private JPasswordField passwordField;
+    private JPasswordField confirmPasswordField;
+    private JButton createManagerButton;
+
+    public SuperManagerPanel() {
         setLayout(new BorderLayout());
 
-        // Header label
-        JLabel headerLabel = new JLabel("SuperManager - Generate Manager Accounts", JLabel.CENTER);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        add(headerLabel, BorderLayout.NORTH);
+        // Header
+        JLabel header = new JLabel("Super Manager - Create Manager Account", SwingConstants.CENTER);
+        header.setFont(new Font("Arial", Font.BOLD, 20));
+        add(header, BorderLayout.NORTH);
 
-        // Create a center panel using GridBagLayout
-        JPanel centerPanel = new JPanel(new GridBagLayout());
+        // Form
+        JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
 
-        // Text area to show info about generated accounts
-        infoArea = new JTextArea(8, 30);
-        infoArea.setEditable(false);
-        infoArea.setLineWrap(true);
-        infoArea.setWrapStyleWord(true);
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Button to generate manager accounts
-        generateManagerButton = new JButton("Generate Manager Account");
-        generateManagerButton.addActionListener(e -> generateManagerAccount());
-
-        // Layout configuration
+        // Email field
         gbc.gridx = 0;
         gbc.gridy = 0;
-        centerPanel.add(generateManagerButton, gbc);
+        formPanel.add(new JLabel("Manager Email:"), gbc);
 
+        gbc.gridx = 1;
+        emailField = new JTextField(20);
+        formPanel.add(emailField, gbc);
+
+        // Password field
         gbc.gridx = 0;
         gbc.gridy = 1;
-        centerPanel.add(new JScrollPane(infoArea), gbc);
+        formPanel.add(new JLabel("Password:"), gbc);
 
-        add(centerPanel, BorderLayout.CENTER);
+        gbc.gridx = 1;
+        passwordField = new JPasswordField(20);
+        formPanel.add(passwordField, gbc);
+
+        // Confirm Password
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        formPanel.add(new JLabel("Confirm Password:"), gbc);
+
+        gbc.gridx = 1;
+        confirmPasswordField = new JPasswordField(20);
+        formPanel.add(confirmPasswordField, gbc);
+
+        // Create Manager button
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        createManagerButton = new JButton("Create Manager Account");
+        createManagerButton.addActionListener(e -> createManager());
+        formPanel.add(createManagerButton, gbc);
+
+        // Place form in center
+        add(formPanel, BorderLayout.CENTER);
     }
 
-    // Generate a new Manager account with a random email and password
-    private void generateManagerAccount() {
-        // Generate random credentials
-        String randomEmail = generateRandomEmail();
-        String randomPassword = generateRandomPassword();
+    private void createManager() {
+        String email = emailField.getText().trim();
+        String password = new String(passwordField.getPassword());
+        String confirm = new String(confirmPasswordField.getPassword());
 
-        // Create a new user object of type MANAGER
-        User manager = new User(randomEmail, randomPassword, UserType.MANAGER, false);
+        if (email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "All fields must be filled.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
 
-        // Store the new user in the system
-        UserDAO.addUser(manager);
+        if (!password.equals(confirm)) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Passwords do not match.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
 
-        // Display account information
-        String message = String.format(
-            "A new Manager account has been created:\n\n" +
-            "Email:    %s\n" +
-            "Password: %s\n\n" +
-            "Please record these credentials securely!",
-            randomEmail, randomPassword
+        // Optionally do password strength checks here (like in MainFrame.isPasswordStrong).
+        // If you'd like to replicate that check, you can call that method if it’s static
+        // or just copy/paste the logic.
+
+        // Create the new Manager user
+        // By default, a Manager user has status=APPROVED (based on your enum).
+        // Also ensure we set pendingValidation = false so they can log in immediately.
+        User managerUser = new User(email, password, UserType.MANAGER, false);
+
+        // Check if user already exists
+        if (UserDAO.getUser(email) != null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "A user with this email already exists.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        // Add user
+        UserDAO.addUser(managerUser);
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Manager account created successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
         );
-        infoArea.setText(message);
-    }
 
-    // Generate a random email for demonstration purposes
-    private String generateRandomEmail() {
-        String alphabet = "abcdefghijklmnopqrstuvwxyz";
-        Random rand = new Random();
-        StringBuilder sb = new StringBuilder();
-
-        // Append 8 random letters for the local part of the email
-        for (int i = 0; i < 8; i++) {
-            sb.append(alphabet.charAt(rand.nextInt(alphabet.length())));
-        }
-        sb.append("@yorku.ca");
-        return sb.toString();
-    }
-
-    // Generate a simple random password containing uppercase, lowercase, digits, and symbols
-    private String generateRandomPassword() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-        Random rand = new Random();
-        int length = 10;
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt(rand.nextInt(chars.length())));
-        }
-        return sb.toString();
+        // Clear fields
+        emailField.setText("");
+        passwordField.setText("");
+        confirmPasswordField.setText("");
     }
 }
