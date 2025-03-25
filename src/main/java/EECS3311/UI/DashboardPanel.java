@@ -14,6 +14,7 @@ class DashboardPanel extends JPanel {
     private JPanel homePanel;
     private BookingPanel bookingPanel;
     private ManagementPanel managementPanel;
+    private MyBookingsPanel myBookingsPanel;
 
     public DashboardPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -50,11 +51,7 @@ class DashboardPanel extends JPanel {
         navPanel.add(bookingButton);
 
         JButton myBookingsButton = new JButton("My Bookings");
-        myBookingsButton.addActionListener(e -> {
-            // TODO: Implement my bookings panel
-            JOptionPane.showMessageDialog(this, "My Bookings feature will be implemented in the next phase",
-                    "Coming Soon", JOptionPane.INFORMATION_MESSAGE);
-        });
+        myBookingsButton.addActionListener(e -> contentCardLayout.show(contentPanel, "MYBOOKINGS"));
         navPanel.add(myBookingsButton);
 
         // Management button (only visible for managers)
@@ -72,10 +69,12 @@ class DashboardPanel extends JPanel {
         homePanel = createHomePanel();
         bookingPanel = new BookingPanel(mainFrame);
         managementPanel = new ManagementPanel();
+        myBookingsPanel = new MyBookingsPanel(mainFrame);
 
         contentPanel.add(homePanel, "HOME");
         contentPanel.add(bookingPanel, "BOOKING");
         contentPanel.add(managementPanel, "MANAGEMENT");
+        contentPanel.add(myBookingsPanel, "MYBOOKINGS");
 
         add(contentPanel, BorderLayout.CENTER);
 

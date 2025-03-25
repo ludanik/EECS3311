@@ -5,25 +5,34 @@ public class Booking {
     private int id;
     private User client;
     private ParkingSpace parkingSpace;
-    private double startTime;
-    private int hours;
-    private double deposit;
-    private double totalCost;
-    private int extendedHours;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private int deposit;
+    private int totalCost;
     private String paymentMethod;
     private BookingStatus status;
+    private String licensePlate;
 
-    public Booking(int id, User client, ParkingSpace parkingSpace, double startTime, int hours, double deposit, double totalCost, int extendedHours, String paymentMethod, BookingStatus status) {
+    public Booking(int id, User client, ParkingSpace parkingSpace, LocalDateTime startTime, LocalDateTime endTime,
+                   int deposit, int totalCost, String paymentMethod, String licensePlate, BookingStatus status) {
         this.id = id;
         this.client = client;
         this.parkingSpace = parkingSpace;
         this.startTime = startTime;
-        this.hours = hours;
+        this.endTime = endTime;
         this.deposit = deposit;
         this.totalCost = totalCost;
-        this.extendedHours = extendedHours;
         this.paymentMethod = paymentMethod;
+        this.licensePlate = licensePlate;
         this.status = status;
+    }
+
+    public LocalDateTime getStartTime() {
+        return this.startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return this.endTime;
     }
 
     public int getId() {
@@ -50,44 +59,20 @@ public class Booking {
         this.parkingSpace = parkingSpace;
     }
 
-    public double getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(double startTime) {
-        this.startTime = startTime;
-    }
-
-    public int getHours() {
-        return hours;
-    }
-
-    public void setHours(int hours) {
-        this.hours = hours;
-    }
-
-    public double getDeposit() {
+    public int getDeposit() {
         return deposit;
     }
 
-    public void setDeposit(double deposit) {
+    public void setDeposit(int deposit) {
         this.deposit = deposit;
     }
 
-    public double getTotalCost() {
+    public int getTotalCost() {
         return totalCost;
     }
 
-    public void setTotalCost(double totalCost) {
+    public void setTotalCost(int totalCost) {
         this.totalCost = totalCost;
-    }
-
-    public int getExtendedHours() {
-        return extendedHours;
-    }
-
-    public void setExtendedHours(int extendedHours) {
-        this.extendedHours = extendedHours;
     }
 
     public String getPaymentMethod() {
@@ -104,5 +89,13 @@ public class Booking {
 
     public void setStatus(BookingStatus status) {
         this.status = status;
+    }
+
+    public String getLicensePlate() {
+        return this.licensePlate;
+    }
+
+    public void setLicensePlate(String licensePlate) {
+        this.licensePlate = licensePlate;
     }
 }

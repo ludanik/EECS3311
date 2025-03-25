@@ -3,6 +3,7 @@ package EECS3311.Models;
 public class ParkingSpace {
     private int lotId;
     private int spaceNumber;
+    private int spaceId;
     private ParkingStatus status;
 
     public ParkingSpace(int lotId, int spaceNumber, ParkingStatus status) {
@@ -10,6 +11,15 @@ public class ParkingSpace {
         this.spaceNumber = spaceNumber;
         this.status = status;
     }
+
+    public ParkingSpace(int lotId, int spaceNumber, ParkingStatus status, int spaceId) {
+        this.lotId = lotId;
+        this.spaceNumber = spaceNumber;
+        this.status = status;
+        this.spaceId = spaceId;
+    }
+
+    public int getSpaceId() { return this.spaceId; }
 
     public int getLotId() {
         return lotId;

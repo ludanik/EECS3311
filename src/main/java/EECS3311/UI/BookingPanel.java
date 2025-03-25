@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.sql.Timestamp;
 
 class BookingPanel extends JPanel {
     private JComboBox<String> parkingLotComboBox;
@@ -181,20 +182,25 @@ class BookingPanel extends JPanel {
             int startMinute = Integer.parseInt((String) startMinuteComboBox.getSelectedItem());
             int duration = (Integer) hoursSpinner.getValue();
 
-            // Calculate start time as a double (hours since midnight)
-            double startTime = startHour + (startMinute / 60.0);
+            LocalDateTime startTime = LocalDateTime.of(LocalDateTime.now().getYear(), LocalDateTime.now().getMonth(), LocalDateTime.now().getDayOfMonth(), startHour, startMinute);
+            LocalDateTime endTime = startTime.plusHours(duration);
 
             // Get lot ID and space number
             int lotId = lotNameToIdMap.get().get(selectedLot);
             int spaceNumber = Integer.parseInt(selectedSpace);
 
             // Find the specific ParkingSpace object
-            ParkingSpace parkingSpace = new ParkingSpace(lotId, spaceNumber, ParkingStatus.AVAILABLE);
+            ParkingSpace parkingSpace = new ParkingSpace(
+                    lotId,
+                    spaceNumber,
+                    ParkingStatus.AVAILABLE,
+                    ParkingSpaceDAO.getParkingSpaceId(lotId, spaceNumber)
+            );
 
             // Calculate costs
-            double hourlyRate = currentUser.getUserType().getHourlyRate();
-            double totalCost = hourlyRate * duration;
-            double deposit = currentUser.getUserType().getHourlyRate();
+            int hourlyRate = (int) currentUser.getUserType().getHourlyRate();
+            int totalCost = hourlyRate * duration;
+            int deposit = (int) currentUser.getUserType().getHourlyRate();
 
             // Create Booking object
             Booking booking = new Booking(
@@ -202,18 +208,18 @@ class BookingPanel extends JPanel {
                     currentUser,
                     parkingSpace,
                     startTime,
-                    duration,
+                    endTime,
                     deposit,
                     totalCost,
-                    0,  // Extended hours
-                    null,  // Payment method (can be set later)
+                    "credit",  // Payment method (can be set later)
+                    licensePlateField.getText(),
                     BookingStatus.BOOKED  // Initial status
             );
 
             // Attempt to save booking
             try {
                 // Typically, call a BookingDAO method here to save the booking
-                // BookingDAO.saveBooking(booking);
+                BookingDAO.addBooking(booking);
 
                 JOptionPane.showMessageDialog(this,
                         "Booking confirmed for " + currentUser.getEmail() +
@@ -231,7 +237,6 @@ class BookingPanel extends JPanel {
     }
 
 
-    // Validate user inputs before creating a booking
     // Validate user inputs before creating a booking
     private boolean validateInputs() {
         // Check current user

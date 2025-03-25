@@ -1,5 +1,6 @@
 package EECS3311.DAO;
 
+import EECS3311.Models.BookingStatus;
 import EECS3311.Models.ParkingLot;
 import EECS3311.Models.ParkingSpace;
 import EECS3311.Models.ParkingStatus;
@@ -11,6 +12,42 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 public class ParkingSpaceDAO {
+
+    public static ParkingSpace getParkingSpace(int parkingSpaceId) {
+        ParkingSpace p = null;
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement stmt = c.prepareStatement("SELECT * FROM parkingspaces WHERE parking_space_id=?;");
+
+            stmt.setInt(1,parkingSpaceId);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                p = new ParkingSpace(rs.getInt("parking_lot_id"), rs.getInt("space_number"), ParkingStatus.valueOf(rs.getString("status")), rs.getInt("parking_space_id"));
+                System.out.println(p);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return p;
+    }
+
+    public static int getParkingSpaceId(int parkingLotId, int spaceNumber) {
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement stmt = c.prepareStatement("SELECT parking_space_id FROM parkingspaces WHERE parking_lot_id = ? AND space_number = ?;");
+            stmt.setInt(1, parkingLotId);
+            stmt.setInt(2, spaceNumber);
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+            return rs.getInt("parking_space_id");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
     public static ArrayList<ParkingSpace> getAvailableSpaces(int parkingLotId) {
         ArrayList<ParkingSpace> list = new ArrayList<>();
         try {
@@ -21,7 +58,7 @@ public class ParkingSpaceDAO {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                ParkingSpace p = new ParkingSpace(parkingLotId, rs.getInt("space_number"), ParkingStatus.AVAILABLE);
+                ParkingSpace p = new ParkingSpace(parkingLotId, rs.getInt("space_number"), ParkingStatus.AVAILABLE, rs.getInt("parking_space_id"));
                 list.add(p);
                 System.out.println(p);
             }

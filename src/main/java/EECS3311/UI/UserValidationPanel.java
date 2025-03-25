@@ -36,6 +36,15 @@ public class UserValidationPanel extends JPanel {
         // Add table to scroll pane
         JScrollPane scrollPane = new JScrollPane(userTable);
         add(scrollPane, BorderLayout.CENTER);
+
+        // Add a component listener to refresh the table model each time the panel is shown
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                // Update the table model with the latest pending users
+                tableModel.updateData(UserDAO.getPendingUsers());
+            }
+        });
     }
 
     // --- Button Renderer for table cells ---
@@ -60,10 +69,6 @@ public class UserValidationPanel extends JPanel {
         private boolean clicked;
         private int row;
 
-        public void refreshUserList() {
-            tableModel.updateData(UserDAO.getPendingUsers());
-        }
-
         public ButtonEditor(JCheckBox checkBox, boolean isApprove) {
             super(checkBox);
             this.isApprove = isApprove;
@@ -87,7 +92,7 @@ public class UserValidationPanel extends JPanel {
         @Override
         public Object getCellEditorValue() {
             if (clicked) {
-                // Retrieve the user fqor the clicked row
+                // Retrieve the user for the clicked row
                 User user = tableModel.getUserAt(row);
                 if (user != null) {
                     if (isApprove) {
@@ -109,7 +114,8 @@ public class UserValidationPanel extends JPanel {
                                     "Success", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
-                    refreshUserList();
+                    // Refresh the table model after the action
+                    tableModel.updateData(UserDAO.getPendingUsers());
                 }
             }
             clicked = false;

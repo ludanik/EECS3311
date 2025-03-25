@@ -31,6 +31,7 @@ public class PaymentPanel extends JPanel {
         formPanel.add(new JLabel("Credit Card Number:"), gbc);
         gbc.gridx = 1;
         cardNumberField = new JTextField(20);
+        cardNumberField.setText("123456789015");
         formPanel.add(cardNumberField, gbc);
 
         // Security Code
@@ -39,6 +40,7 @@ public class PaymentPanel extends JPanel {
         formPanel.add(new JLabel("Security Code:"), gbc);
         gbc.gridx = 1;
         securityCodeField = new JTextField(4);
+        securityCodeField.setText("123");
         formPanel.add(securityCodeField, gbc);
 
         // Expiration Date
@@ -47,6 +49,7 @@ public class PaymentPanel extends JPanel {
         formPanel.add(new JLabel("Expiration Date (MM/yy):"), gbc);
         gbc.gridx = 1;
         expirationField = new JTextField(5);
+        expirationField.setText("01/29");
         formPanel.add(expirationField, gbc);
 
         add(formPanel, BorderLayout.CENTER);
