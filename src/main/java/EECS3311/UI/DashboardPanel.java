@@ -80,6 +80,15 @@ class DashboardPanel extends JPanel {
 
         // Show home by default
         contentCardLayout.show(contentPanel, "HOME");
+
+        // In DashboardPanel.java constructor, after creating the navPanel, add:
+
+        JButton superManagerButton = new JButton("Super Manager Tools");
+        superManagerButton.addActionListener(e -> contentCardLayout.show(contentPanel, "SUPER_MANAGER"));
+        navPanel.add(superManagerButton);
+
+        SuperManagerPanel superManagerPanel = new SuperManagerPanel();
+        contentPanel.add(superManagerPanel, "SUPER_MANAGER");
     }
 
     private JPanel createHomePanel() {
@@ -111,4 +120,6 @@ class DashboardPanel extends JPanel {
         // Management button is the last button
         navButtons[navButtons.length - 1].setVisible(user.getUserType() == UserType.MANAGER);
     }
+
+
 }
