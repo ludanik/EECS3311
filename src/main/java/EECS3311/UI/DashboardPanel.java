@@ -15,6 +15,7 @@ class DashboardPanel extends JPanel {
     private BookingPanel bookingPanel;
     private ManagementPanel managementPanel;
     private MyBookingsPanel myBookingsPanel;
+    private SuperManagerAccountGenerationPanel superManagerPanel;
 
     public DashboardPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -59,6 +60,10 @@ class DashboardPanel extends JPanel {
         managementButton.addActionListener(e -> contentCardLayout.show(contentPanel, "MANAGEMENT"));
         navPanel.add(managementButton);
 
+        JButton superManagerButton = new JButton("Super Manager Tools");
+        superManagerButton.addActionListener(e -> contentCardLayout.show(contentPanel, "SUPER_MANAGER"));
+        navPanel.add(superManagerButton);
+
         add(navPanel, BorderLayout.WEST);
 
         // Create content panel with card layout
@@ -68,27 +73,21 @@ class DashboardPanel extends JPanel {
         // Create content panels
         homePanel = createHomePanel();
         bookingPanel = new BookingPanel(mainFrame);
-        managementPanel = new ManagementPanel();
+        managementPanel = new ManagementPanel(mainFrame);
         myBookingsPanel = new MyBookingsPanel(mainFrame);
+        superManagerPanel = new SuperManagerAccountGenerationPanel();
 
         contentPanel.add(homePanel, "HOME");
         contentPanel.add(bookingPanel, "BOOKING");
         contentPanel.add(managementPanel, "MANAGEMENT");
         contentPanel.add(myBookingsPanel, "MYBOOKINGS");
+        contentPanel.add(superManagerPanel, "SUPER_MANAGER");
 
         add(contentPanel, BorderLayout.CENTER);
 
         // Show home by default
         contentCardLayout.show(contentPanel, "HOME");
 
-        // In DashboardPanel.java constructor, after creating the navPanel, add:
-
-        JButton superManagerButton = new JButton("Super Manager Tools");
-        superManagerButton.addActionListener(e -> contentCardLayout.show(contentPanel, "SUPER_MANAGER"));
-        navPanel.add(superManagerButton);
-
-        SuperManagerPanel superManagerPanel = new SuperManagerPanel();
-        contentPanel.add(superManagerPanel, "SUPER_MANAGER");
     }
 
     private JPanel createHomePanel() {
@@ -118,8 +117,9 @@ class DashboardPanel extends JPanel {
         Component[] navButtons = ((JPanel)getComponent(1)).getComponents();
 
         // Management button is the last button
-        navButtons[navButtons.length - 1].setVisible(user.getUserType() == UserType.MANAGER);
+        navButtons[navButtons.length - 4].setVisible(user.getUserType() != UserType.MANAGER && user.getUserType() != UserType.SUPERMANAGER );
+        navButtons[navButtons.length - 3].setVisible(user.getUserType() != UserType.MANAGER && user.getUserType() != UserType.SUPERMANAGER);
+        navButtons[navButtons.length - 2].setVisible(user.getUserType() == UserType.MANAGER || user.getUserType() == UserType.SUPERMANAGER);
+        navButtons[navButtons.length - 1].setVisible(user.getUserType() == UserType.SUPERMANAGER);
     }
-
-
 }

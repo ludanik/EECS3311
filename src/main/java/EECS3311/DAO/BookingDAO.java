@@ -91,4 +91,12 @@ public class BookingDAO {
         // Retrieve a booking by id if needed
         return null;
     }
+
+    public static void cancelBooking(int id) {
+
+    }
+
+    public static void extendBooking(int id, int hours) {
+
+    }
 }

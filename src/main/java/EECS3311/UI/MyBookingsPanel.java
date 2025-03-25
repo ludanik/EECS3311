@@ -1,7 +1,9 @@
 package EECS3311.UI;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import EECS3311.DAO.BookingDAO;
 import EECS3311.Models.Booking;
@@ -29,13 +31,24 @@ public class MyBookingsPanel extends JPanel {
         bookingTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         bookingTable.setFillsViewportHeight(true);
 
+        // Set custom renderers and editors for the button columns:
+        // Column indices: 6 = ARRIVE, 7 = EXTEND, 8 = CANCEL
+        bookingTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
+        bookingTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox(), "ARRIVE"));
+
+        bookingTable.getColumnModel().getColumn(7).setCellRenderer(new ButtonRenderer());
+        bookingTable.getColumnModel().getColumn(7).setCellEditor(new ButtonEditor(new JCheckBox(), "EXTEND"));
+
+        bookingTable.getColumnModel().getColumn(8).setCellRenderer(new ButtonRenderer());
+        bookingTable.getColumnModel().getColumn(8).setCellEditor(new ButtonEditor(new JCheckBox(), "CANCEL"));
+
         JScrollPane scrollPane = new JScrollPane(bookingTable);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Optionally, add a listener to refresh bookings every time the panel is shown
-        this.addComponentListener(new java.awt.event.ComponentAdapter() {
+        // Refresh bookings when the panel is shown
+        this.addComponentListener(new ComponentAdapter() {
             @Override
-            public void componentShown(java.awt.event.ComponentEvent e) {
+            public void componentShown(ComponentEvent e) {
                 refreshBookings();
             }
         });
@@ -46,5 +59,86 @@ public class MyBookingsPanel extends JPanel {
         ArrayList<Booking> bookings = BookingDAO.getClientBookings(mainFrame.getCurrentUser().getId());
         tableModel.updateData(bookings);
     }
-}
 
+    // --- Custom Button Renderer ---
+    class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            setText(value == null ? "" : value.toString());
+            return this;
+        }
+    }
+
+    // --- Custom Button Editor ---
+    class ButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private String label;
+        private boolean isPushed;
+        private String actionType;
+        private int row;
+
+        public ButtonEditor(JCheckBox checkBox, String actionType) {
+            super(checkBox);
+            this.actionType = actionType;
+            button = new JButton();
+            button.setOpaque(true);
+            button.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped();
+                }
+            });
+        }
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            this.row = row;
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            isPushed = true;
+            return button;
+        }
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                // Retrieve the Booking for the current row. Ensure BookingTableModel implements getBookingAt(row)
+                Booking booking = tableModel.getBookingAt(row);
+                if (booking != null) {
+                    switch (actionType) {
+                        case "ARRIVE":
+                            // Process ARRIVE action. Replace with your actual logic.
+                            JOptionPane.showMessageDialog(button, "Arrived for booking starting at " + booking.getStartTime());
+                            break;
+                        case "EXTEND":
+                            // Process EXTEND action. Replace with your actual extension logic.
+                            JOptionPane.showMessageDialog(button, "Extend booking starting at " + booking.getStartTime());
+                            break;
+                        case "CANCEL":
+                            int confirm = JOptionPane.showConfirmDialog(button,
+                                    "Are you sure you want to cancel this booking?",
+                                    "Cancel Booking", JOptionPane.YES_NO_OPTION);
+                            if (confirm == JOptionPane.YES_OPTION) {
+                                // Cancel the booking via BookingDAO. Assume cancelBooking exists.
+                                BookingDAO.cancelBooking(booking.getId());
+                                JOptionPane.showMessageDialog(button, "Booking canceled.");
+                            }
+                            break;
+                    }
+                    // Refresh table data after action
+                    refreshBookings();
+                }
+            }
+            isPushed = false;
+            return label;
+        }
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
+        }
+    }
+}

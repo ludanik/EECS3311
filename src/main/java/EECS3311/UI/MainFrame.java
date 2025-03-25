@@ -20,9 +20,9 @@ class MainFrame extends JFrame {
         setSize(800, 600);
         setLocationRelativeTo(null);
 
-        // Add a default manager account
+        // This is the SUPERMANAGER. Use this to create MANAGERS.
         UserDAO.addUser(new User("admin@yorku.ca", "x",  UserType.SUPERMANAGER, false));
-        // Initialize UI components
+
         initComponents();
     }
 

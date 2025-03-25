@@ -2,6 +2,8 @@ package EECS3311.UI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,8 +20,12 @@ class ManagementPanel extends JPanel {
     private JTextField spaceIdField;
     private JButton enableSpaceButton;
     private JButton disableSpaceButton;
+    private MainFrame mainFrame;
+    private JTabbedPane tabbedPane;
+    private SuperManagerAccountGenerationPanel superManagerPanel;
 
-    public ManagementPanel() {
+    public ManagementPanel(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
         // Use BorderLayout as the main layout
         setLayout(new BorderLayout());
 
@@ -29,7 +35,7 @@ class ManagementPanel extends JPanel {
         add(titleLabel, BorderLayout.NORTH);
 
         // Create a tabbed pane for different management functions
-        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane = new JTabbedPane();
 
         // 1. Lot management panel
         JPanel lotPanel = buildLotManagementPanel();
@@ -40,18 +46,15 @@ class ManagementPanel extends JPanel {
         // 3. User management panel (existing user validation)
         JPanel userPanel = new UserValidationPanel();
 
-        // 4. (NEW) SuperManager: Generate Manager Accounts
-        SuperManagerAccountGenerationPanel superManagerPanel = new SuperManagerAccountGenerationPanel();
-
         // Add each panel to the tabbed pane
         tabbedPane.addTab("Manage Lots", lotPanel);
         tabbedPane.addTab("Manage Spaces", spacePanel);
         tabbedPane.addTab("Manage Users", userPanel);
-        tabbedPane.addTab("Generate Manager Accounts", superManagerPanel);
 
         // Add the tabbed pane to the ManagementPanel
         add(tabbedPane, BorderLayout.CENTER);
     }
+
 
     // ----------------------------------------------------------
     //  BUILD LOT MANAGEMENT PANEL

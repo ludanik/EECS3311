@@ -12,6 +12,10 @@ public class BookingTableModel extends AbstractTableModel {
             "Parking Lot", "Space", "Start Time", "End Time", "Total Cost", "Status", "ARRIVE", "EXTEND", "CANCEL"
     };
 
+    public Booking getBookingAt(int row) {
+        return bookings.get(row);
+    }
+
     public BookingTableModel(ArrayList<Booking> bookings) {
         this.bookings = bookings;
     }
