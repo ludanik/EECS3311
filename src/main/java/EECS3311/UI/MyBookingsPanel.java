@@ -100,12 +100,16 @@ public class MyBookingsPanel extends JPanel {
                 if (booking != null) {
                     switch (actionType) {
                         case "ARRIVE":
-                            // Process ARRIVE action. Replace with your actual logic.
                             JOptionPane.showMessageDialog(button, "Arrived for booking starting at " + booking.getStartTime());
                             break;
                         case "EXTEND":
-                            // Process EXTEND action. Replace with your actual extension logic.
-                            JOptionPane.showMessageDialog(button, "Extend booking starting at " + booking.getStartTime());
+                            ExtendPanel extendPanel = new ExtendPanel();
+                            int option = JOptionPane.showConfirmDialog(mainFrame, extendPanel,
+                                    "Extend Booking", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                            if (option == JOptionPane.OK_OPTION) {
+                                BookingDAO.extendBooking(booking, Integer.parseInt(extendPanel.hoursField.getText()));
+                                JOptionPane.showMessageDialog(button, "Extend booking starting at " + booking.getStartTime());
+                            }
                             break;
                         case "CANCEL":
                             int confirm = JOptionPane.showConfirmDialog(button,
