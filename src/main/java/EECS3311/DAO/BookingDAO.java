@@ -30,6 +30,9 @@ public class BookingDAO {
             insertStmt.setString(9, b.getPaymentMethod());
 
             int insertedRows = insertStmt.executeUpdate();
+
+
+
             System.out.printf("inserted %s bookings(s)%n", insertedRows);
         }
         catch (Exception e) {
@@ -93,10 +96,30 @@ public class BookingDAO {
     }
 
     public static void cancelBooking(int id) {
-
+        try {
+            Connection c = DBUtil.getConnection();
+            PreparedStatement deleteStmt = c.prepareStatement("DELETE FROM bookings WHERE booking_id = ?");
+            deleteStmt.setInt(1, id);
+            int deletedRows = deleteStmt.executeUpdate();
+            System.out.printf("deleted %s bookings(s)%n", deletedRows);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void extendBooking(int id, int hours) {
+    public static void extendBooking(Booking b, int hours) {
+        try {
+            LocalDateTime endTime = b.getEndTime().plusHours(hours);
 
+            Connection c = DBUtil.getConnection();
+            PreparedStatement updateStmt = c.prepareStatement("UPDATE bookings SET end_time = ? WHERE booking_id = ?;");
+            updateStmt.setTimestamp(1, Timestamp.valueOf(endTime));
+            updateStmt.setInt(2, b.getId());
+            int rows = updateStmt.executeUpdate();
+            System.out.println(rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

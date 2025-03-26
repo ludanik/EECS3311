@@ -35,15 +35,12 @@ class MainFrame extends JFrame {
         registerPanel = new RegisterPanel(this);
         dashboardPanel = new DashboardPanel(this);
 
-        // Add panels to card layout
         mainPanel.add(loginPanel, "LOGIN");
         mainPanel.add(registerPanel, "REGISTER");
         mainPanel.add(dashboardPanel, "DASHBOARD");
 
-        // Show login panel by default
         cardLayout.show(mainPanel, "LOGIN");
 
-        // Add main panel to frame
         add(mainPanel);
     }
 
@@ -62,20 +59,16 @@ class MainFrame extends JFrame {
     }
 
     public boolean registerUser(String email, String password, UserType userType) {
-        // Check if user already exists
         if (UserDAO.getUser(email) != null) {
             return false;
         }
 
-        // Validate password strength
         if (!isPasswordStrong(password)) {
             return false;
         }
 
-        // Create and store new user
         User newUser = new User(email,  password, userType, false);
 
-        // For non-visitor accounts, set pending validation status
         if (userType != UserType.VISITOR) {
             newUser.setPendingValidation(true);
         }

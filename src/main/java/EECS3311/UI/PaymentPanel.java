@@ -14,18 +14,15 @@ public class PaymentPanel extends JPanel {
     public PaymentPanel() {
         setLayout(new BorderLayout());
 
-        // Header
         JLabel header = new JLabel("Payment Information", SwingConstants.CENTER);
         header.setFont(new Font("Arial", Font.BOLD, 18));
         add(header, BorderLayout.NORTH);
 
-        // Form panel
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Credit Card Number
         gbc.gridx = 0;
         gbc.gridy = 0;
         formPanel.add(new JLabel("Credit Card Number:"), gbc);
@@ -34,7 +31,6 @@ public class PaymentPanel extends JPanel {
         cardNumberField.setText("123456789015");
         formPanel.add(cardNumberField, gbc);
 
-        // Security Code
         gbc.gridx = 0;
         gbc.gridy = 1;
         formPanel.add(new JLabel("Security Code:"), gbc);
@@ -43,7 +39,6 @@ public class PaymentPanel extends JPanel {
         securityCodeField.setText("123");
         formPanel.add(securityCodeField, gbc);
 
-        // Expiration Date
         gbc.gridx = 0;
         gbc.gridy = 2;
         formPanel.add(new JLabel("Expiration Date (MM/yy):"), gbc);
@@ -55,13 +50,11 @@ public class PaymentPanel extends JPanel {
         add(formPanel, BorderLayout.CENTER);
     }
 
-    // Public method to allow external validation of payment details.
     public boolean isPaymentValid() {
         String cardNumber = cardNumberField.getText().replaceAll("\\s+", "");
         String securityCode = securityCodeField.getText().trim();
         String expiration = expirationField.getText().trim();
 
-        // Validate credit card number using Luhn's algorithm
         if (!isValidCreditCard(cardNumber)) {
             JOptionPane.showMessageDialog(this,
                     "Invalid credit card number.",
@@ -70,7 +63,6 @@ public class PaymentPanel extends JPanel {
             return false;
         }
 
-        // Validate security code (typically 3 or 4 digits)
         if (!securityCode.matches("\\d{3,4}")) {
             JOptionPane.showMessageDialog(this,
                     "Invalid security code. It should be 3 or 4 digits.",
@@ -79,7 +71,6 @@ public class PaymentPanel extends JPanel {
             return false;
         }
 
-        // Validate expiration date in MM/yy format and ensure it's not expired
         if (!isValidExpiration(expiration)) {
             JOptionPane.showMessageDialog(this,
                     "Invalid or expired expiration date.",
@@ -90,7 +81,6 @@ public class PaymentPanel extends JPanel {
         return true;
     }
 
-    // Luhn algorithm implementation for credit card validation
     private boolean isValidCreditCard(String cardNumber) {
         int sum = 0;
         boolean alternate = false;
@@ -112,7 +102,6 @@ public class PaymentPanel extends JPanel {
         return sum % 10 == 0;
     }
 
-    // Validates expiration date in MM/yy format and checks if it's current or in the future
     private boolean isValidExpiration(String expiration) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/yy");

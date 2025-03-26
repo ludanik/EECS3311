@@ -7,7 +7,6 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import EECS3311.DAO.BookingDAO;
 import EECS3311.Models.Booking;
-import EECS3311.Models.User;
 
 public class MyBookingsPanel extends JPanel {
     private JTable bookingTable;
@@ -19,20 +18,16 @@ public class MyBookingsPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        // Header label
         JLabel header = new JLabel("Your Bookings", JLabel.CENTER);
         header.setFont(new Font("Arial", Font.BOLD, 16));
         add(header, BorderLayout.NORTH);
 
-        // Retrieve bookings using the BookingDAO for the current user
         ArrayList<Booking> bookings = BookingDAO.getClientBookings(0);
         tableModel = new BookingTableModel(bookings);
         bookingTable = new JTable(tableModel);
         bookingTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         bookingTable.setFillsViewportHeight(true);
 
-        // Set custom renderers and editors for the button columns:
-        // Column indices: 6 = ARRIVE, 7 = EXTEND, 8 = CANCEL
         bookingTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
         bookingTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox(), "ARRIVE"));
 
@@ -45,7 +40,6 @@ public class MyBookingsPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(bookingTable);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Refresh bookings when the panel is shown
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentShown(ComponentEvent e) {
@@ -54,13 +48,11 @@ public class MyBookingsPanel extends JPanel {
         });
     }
 
-    // Refresh the table with updated bookings from the database.
     public void refreshBookings() {
         ArrayList<Booking> bookings = BookingDAO.getClientBookings(mainFrame.getCurrentUser().getId());
         tableModel.updateData(bookings);
     }
 
-    // --- Custom Button Renderer ---
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
@@ -74,7 +66,6 @@ public class MyBookingsPanel extends JPanel {
         }
     }
 
-    // --- Custom Button Editor ---
     class ButtonEditor extends DefaultCellEditor {
         private JButton button;
         private String label;
@@ -105,7 +96,6 @@ public class MyBookingsPanel extends JPanel {
         @Override
         public Object getCellEditorValue() {
             if (isPushed) {
-                // Retrieve the Booking for the current row. Ensure BookingTableModel implements getBookingAt(row)
                 Booking booking = tableModel.getBookingAt(row);
                 if (booking != null) {
                     switch (actionType) {
@@ -122,13 +112,12 @@ public class MyBookingsPanel extends JPanel {
                                     "Are you sure you want to cancel this booking?",
                                     "Cancel Booking", JOptionPane.YES_NO_OPTION);
                             if (confirm == JOptionPane.YES_OPTION) {
-                                // Cancel the booking via BookingDAO. Assume cancelBooking exists.
                                 BookingDAO.cancelBooking(booking.getId());
                                 JOptionPane.showMessageDialog(button, "Booking canceled.");
                             }
                             break;
                     }
-                    // Refresh table data after action
+
                     refreshBookings();
                 }
             }

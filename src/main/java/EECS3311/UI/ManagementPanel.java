@@ -2,15 +2,12 @@ package EECS3311.UI;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import EECS3311.DAO.*;
 import EECS3311.Models.*;
 
-// Management Panel
 class ManagementPanel extends JPanel {
     private JComboBox<String> parkingLotComboBox;
     private JComboBox<String> parkingLotComboBox2;
@@ -26,50 +23,34 @@ class ManagementPanel extends JPanel {
 
     public ManagementPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
-        // Use BorderLayout as the main layout
         setLayout(new BorderLayout());
 
-        // Header label
         JLabel titleLabel = new JLabel("Parking Management", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         add(titleLabel, BorderLayout.NORTH);
 
-        // Create a tabbed pane for different management functions
         tabbedPane = new JTabbedPane();
 
-        // 1. Lot management panel
         JPanel lotPanel = buildLotManagementPanel();
-
-        // 2. Space management panel
         JPanel spacePanel = buildSpaceManagementPanel();
-
-        // 3. User management panel (existing user validation)
         JPanel userPanel = new UserValidationPanel();
 
-        // Add each panel to the tabbed pane
         tabbedPane.addTab("Manage Lots", lotPanel);
         tabbedPane.addTab("Manage Spaces", spacePanel);
         tabbedPane.addTab("Manage Users", userPanel);
 
-        // Add the tabbed pane to the ManagementPanel
         add(tabbedPane, BorderLayout.CENTER);
     }
 
-
-    // ----------------------------------------------------------
-    //  BUILD LOT MANAGEMENT PANEL
-    // ----------------------------------------------------------
     private JPanel buildLotManagementPanel() {
         JPanel lotPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Retrieve all parking lots
         ArrayList<ParkingLot> lots = ParkingLotDAO.getAllLots();
         AtomicReference<HashMap<String, Integer>> lotNameToIdMap = new AtomicReference<>(new HashMap<>());
 
-        // Extract lot names for the combo box
         String[] lotNames = lots.stream()
                 .map(ParkingLot::getName)
                 .toArray(String[]::new);
@@ -78,7 +59,6 @@ class ManagementPanel extends JPanel {
             lotNameToIdMap.get().put(lot.getName(), lot.getId());
         }
 
-        // Build UI for the lot panel
         gbc.gridx = 0;
         gbc.gridy = 0;
         lotPanel.add(new JLabel("Parking Lot:"), gbc);
@@ -87,18 +67,15 @@ class ManagementPanel extends JPanel {
         parkingLotComboBox = new JComboBox<>(lotNames);
         lotPanel.add(parkingLotComboBox, gbc);
 
-        // "Add New Lot" button
         gbc.gridx = 0;
         gbc.gridy = 1;
         addLotButton = new JButton("Add New Lot");
         addLotButton.addActionListener(e -> {
             String lotName = JOptionPane.showInputDialog(this, "Enter new lot name:");
             if (lotName != null && !lotName.isEmpty()) {
-                // Create and add new lot
                 ParkingLot p = new ParkingLot(ParkingLotDAO.getNextId(), lotName, true);
                 ParkingLotDAO.addLot(p);
 
-                // Refresh lots
                 ArrayList<ParkingLot> updatedLots = ParkingLotDAO.getAllLots();
                 String[] updatedLotNames = updatedLots.stream()
                         .map(ParkingLot::getName)
@@ -118,7 +95,6 @@ class ManagementPanel extends JPanel {
         });
         lotPanel.add(addLotButton, gbc);
 
-        // "Enable Lot" button
         gbc.gridx = 1;
         enableLotButton = new JButton("Enable Lot");
         enableLotButton.addActionListener(e -> {
@@ -131,7 +107,6 @@ class ManagementPanel extends JPanel {
         });
         lotPanel.add(enableLotButton, gbc);
 
-        // "Disable Lot" button
         gbc.gridx = 2;
         disableLotButton = new JButton("Disable Lot");
         disableLotButton.addActionListener(e -> {
@@ -147,16 +122,12 @@ class ManagementPanel extends JPanel {
         return lotPanel;
     }
 
-    // ----------------------------------------------------------
-    //  BUILD SPACE MANAGEMENT PANEL
-    // ----------------------------------------------------------
     private JPanel buildSpaceManagementPanel() {
         JPanel spacePanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Retrieve all lots
         ArrayList<ParkingLot> lots = ParkingLotDAO.getAllLots();
         AtomicReference<HashMap<String, Integer>> lotNameToIdMap = new AtomicReference<>(new HashMap<>());
 
@@ -168,7 +139,6 @@ class ManagementPanel extends JPanel {
             lotNameToIdMap.get().put(lot.getName(), lot.getId());
         }
 
-        // Build UI for space panel
         gbc.gridx = 0;
         gbc.gridy = 0;
         spacePanel.add(new JLabel("Parking Lot:"), gbc);
@@ -185,7 +155,6 @@ class ManagementPanel extends JPanel {
         spaceIdField = new JTextField(10);
         spacePanel.add(spaceIdField, gbc);
 
-        // "Enable Space" button
         gbc.gridx = 0;
         gbc.gridy = 2;
         enableSpaceButton = new JButton("Enable Space");
@@ -201,7 +170,6 @@ class ManagementPanel extends JPanel {
         });
         spacePanel.add(enableSpaceButton, gbc);
 
-        // "Disable Space" button
         gbc.gridx = 1;
         disableSpaceButton = new JButton("Disable Space");
         disableSpaceButton.addActionListener(e -> {

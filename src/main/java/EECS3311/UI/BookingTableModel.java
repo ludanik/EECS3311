@@ -49,11 +49,10 @@ public class BookingTableModel extends AbstractTableModel {
             case 1:
                 return booking.getParkingSpace().getSpaceNumber();
             case 2:
-                return booking.getStartTime().toString();
+                return "" + booking.getStartTime().getHour() + ":" + booking.getStartTime().getMinute();
             case 3:
-                return booking.getEndTime().toString();
+                return "" + booking.getEndTime().getHour() + ":" + booking.getEndTime().getMinute();
             case 4:
-                // Prepend a dollar sign to total cost.
                 return "$" + booking.getTotalCost();
             case 5:
                 return booking.getStatus().toString();
@@ -68,10 +67,8 @@ public class BookingTableModel extends AbstractTableModel {
         }
     }
 
-    // Optionally, override isCellEditable if you want only the button columns to be clickable.
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        // Only the last three columns (buttons) are editable (clickable).
         return columnIndex >= 6;
     }
 }

@@ -6,7 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.print.Book;
 
-// Dashboard Panel
 class DashboardPanel extends JPanel {
     private MainFrame mainFrame;
     private JPanel contentPanel;
@@ -21,7 +20,6 @@ class DashboardPanel extends JPanel {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
-        // Create header
         JPanel headerPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("YorkU Parking Booking System - Dashboard", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
@@ -35,7 +33,6 @@ class DashboardPanel extends JPanel {
 
         add(headerPanel, BorderLayout.NORTH);
 
-        // Create navigation panel
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
 
@@ -55,7 +52,6 @@ class DashboardPanel extends JPanel {
         myBookingsButton.addActionListener(e -> contentCardLayout.show(contentPanel, "MYBOOKINGS"));
         navPanel.add(myBookingsButton);
 
-        // Management button (only visible for managers)
         JButton managementButton = new JButton("Management");
         managementButton.addActionListener(e -> contentCardLayout.show(contentPanel, "MANAGEMENT"));
         navPanel.add(managementButton);
@@ -66,11 +62,9 @@ class DashboardPanel extends JPanel {
 
         add(navPanel, BorderLayout.WEST);
 
-        // Create content panel with card layout
         contentCardLayout = new CardLayout();
         contentPanel = new JPanel(contentCardLayout);
 
-        // Create content panels
         homePanel = createHomePanel();
         bookingPanel = new BookingPanel(mainFrame);
         managementPanel = new ManagementPanel(mainFrame);
@@ -85,7 +79,6 @@ class DashboardPanel extends JPanel {
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // Show home by default
         contentCardLayout.show(contentPanel, "HOME");
 
     }
@@ -113,10 +106,8 @@ class DashboardPanel extends JPanel {
     }
 
     public void updateForUser(User user) {
-        // Update UI based on user type
         Component[] navButtons = ((JPanel)getComponent(1)).getComponents();
 
-        // Management button is the last button
         navButtons[navButtons.length - 4].setVisible(user.getUserType() != UserType.MANAGER && user.getUserType() != UserType.SUPERMANAGER );
         navButtons[navButtons.length - 3].setVisible(user.getUserType() != UserType.MANAGER && user.getUserType() != UserType.SUPERMANAGER);
         navButtons[navButtons.length - 2].setVisible(user.getUserType() == UserType.MANAGER || user.getUserType() == UserType.SUPERMANAGER);

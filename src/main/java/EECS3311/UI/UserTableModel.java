@@ -47,16 +47,13 @@ public class UserTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        // Only the Approve and Deny button columns should be editable (clickable)
         return columnIndex == 2 || columnIndex == 3;
     }
 
-    // Returns the User at the specified row index
     public User getUserAt(int rowIndex) {
         return users.get(rowIndex);
     }
 
-    // Updates the data in the model and refreshes the table
     public void updateData(List<User> newUsers) {
         this.users = newUsers;
         fireTableDataChanged();
