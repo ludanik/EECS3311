@@ -16,7 +16,7 @@ public class BookingDAO {
         try {
             Connection c = DBUtil.getConnection();
             PreparedStatement insertStmt = c.prepareStatement(
-                    "INSERT INTO bookings(client_id, parking_space_id, license_plate, start_time, end_time, deposit, total_cost, status, payment_method) " +
+                    "INSERT INTO bookings(client_id, space_id, license_plate, start_time, end_time, deposit, total_cost, status, payment_method) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             insertStmt.setInt(1, b.getClient().getId());
