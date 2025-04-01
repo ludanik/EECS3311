@@ -29,6 +29,10 @@ public class UserDAO {
     }
 
     public static User getUser(String email) {
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+
         User user = null;
         try {
             Connection c = DBUtil.getConnection();

@@ -2,6 +2,7 @@ package EECS3311.DAO;
 
 import EECS3311.Models.User;
 import EECS3311.Models.UserType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -19,31 +20,35 @@ class UserDAOTest {
     private Connection mockConnection;
     private PreparedStatement mockPreparedStatement;
     private ResultSet mockResultSet;
+    private MockedStatic<DBUtil> dbUtilMock;
     private User testUser;
 
     @BeforeEach
     void setUp() throws SQLException {
+        // Create mock objects
         mockConnection = mock(Connection.class);
         mockPreparedStatement = mock(PreparedStatement.class);
         mockResultSet = mock(ResultSet.class);
 
-        // Mock DBUtil.getConnection()
-        try (MockedStatic<DBUtil> mockedDBUtil = Mockito.mockStatic(DBUtil.class)) {
-            mockedDBUtil.when(DBUtil::getConnection).thenReturn(mockConnection);
-        }
+        // Mock static DBUtil.getConnection() method
+        dbUtilMock = mockStatic(DBUtil.class);
+        dbUtilMock.when(DBUtil::getConnection).thenReturn(mockConnection);
 
+        // Mock PreparedStatement behavior
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
         when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
-        when(mockPreparedStatement.executeUpdate()).thenReturn(1);
 
-        // Create a test user (STUDENT has PENDING status by default)
+        // Setup test user
         testUser = new User("student@example.com", "password123", UserType.STUDENT, true);
-        testUser.setId(1);
+    }
+
+    @AfterEach
+    void tearDown() {
+        dbUtilMock.close();
     }
 
     @Test
     void testGetUserByUserObjectWithPendingStatus() throws SQLException {
-        // Arrange
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("email")).thenReturn("student@example.com");
         when(mockResultSet.getString("password")).thenReturn("password123");
@@ -51,10 +56,8 @@ class UserDAOTest {
         when(mockResultSet.getString("status")).thenReturn("PENDING");
         when(mockResultSet.getInt("id")).thenReturn(1);
 
-        // Act
         User result = UserDAO.getUser(testUser);
 
-        // Assert
         assertNotNull(result);
         assertEquals("student@example.com", result.getEmail());
         assertEquals(UserType.STUDENT, result.getUserType());
@@ -64,8 +67,98 @@ class UserDAOTest {
     }
 
     @Test
+    void testGetUserWithInvalidEmail() throws SQLException {
+        when(mockResultSet.next()).thenReturn(false);
+
+        User result = UserDAO.getUser("nonexistent@example.com");
+
+        assertNull(result);
+    }
+
+    @Test
+    void testAddUserWithNullValues() {
+        User nullUser = new User(null, null, null, false);
+
+        assertThrows(NullPointerException.class, () -> {
+            UserDAO.addUser(nullUser);
+        });
+    }
+
+    @Test
+    void testApproveAlreadyApprovedUser() throws SQLException {
+        User approvedUser = new User("visitor@example.com", "pass", UserType.VISITOR, false);
+
+        UserDAO.approveUser(approvedUser);
+
+        verify(mockPreparedStatement, never()).setString(1, "APPROVED");
+    }
+
+    @Test
+    void testGetPendingUsersWithEmptyResult() throws SQLException {
+        when(mockResultSet.next()).thenReturn(false);
+
+        ArrayList<User> result = UserDAO.getPendingUsers();
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testUserTypeHourlyRates() {
+        assertEquals(5.0, UserType.STUDENT.getHourlyRate());
+        assertEquals(8.0, UserType.FACULTY.getHourlyRate());
+        assertEquals(7.0, UserType.STAFF.getHourlyRate());
+        assertEquals(15.0, UserType.VISITOR.getHourlyRate());
+        assertEquals(20.0, UserType.MANAGER.getHourlyRate());
+        assertEquals(25.0, UserType.SUPERMANAGER.getHourlyRate());
+    }
+
+    @Test
+    void testSQLExceptionInGetUser() throws SQLException {
+        when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
+
+        assertThrows(RuntimeException.class, () -> {
+            UserDAO.getUser("test@example.com");
+        });
+    }
+
+    @Test
+    void testAddDuplicateUser() throws SQLException {
+        when(mockPreparedStatement.executeUpdate()).thenThrow(new SQLException("Duplicate entry"));
+
+        assertThrows(RuntimeException.class, () -> {
+            UserDAO.addUser(testUser);
+        });
+    }
+
+    @Test
+    void testGetUserWithMalformedEmail() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            UserDAO.getUser("not-an-email");
+        });
+    }
+
+    @Test
+    void testApproveNonExistentUser() throws SQLException {
+        when(mockResultSet.next()).thenReturn(false);
+        User fakeUser = new User("fake@example.com", "pass", UserType.STUDENT, true);
+
+        assertThrows(RuntimeException.class, () -> {
+            UserDAO.approveUser(fakeUser);
+        });
+    }
+
+    @Test
+    void testUserTypeToString() {
+        assertEquals("Student", UserType.STUDENT.toString());
+        assertEquals("Faculty", UserType.FACULTY.toString());
+        assertEquals("Staff", UserType.STAFF.toString());
+        assertEquals("Visitor", UserType.VISITOR.toString());
+        assertEquals("Manager", UserType.MANAGER.toString());
+        assertEquals("SuperManager", UserType.SUPERMANAGER.toString());
+    }
+
+    @Test
     void testGetUserByEmailWithApprovedStatus() throws SQLException {
-        // Test with a VISITOR which should be APPROVED by default
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("email")).thenReturn("visitor@example.com");
         when(mockResultSet.getString("password")).thenReturn("visitorpass");
@@ -78,39 +171,43 @@ class UserDAOTest {
         assertNotNull(result);
         assertEquals("visitor@example.com", result.getEmail());
         assertEquals(UserType.VISITOR, result.getUserType());
-        assertFalse(result.isPendingValidation()); // VISITOR should be auto-approved
+        assertFalse(result.isPendingValidation());
         assertEquals(15.0, result.getUserType().getHourlyRate());
     }
 
     @Test
     void testAddUserWithDifferentUserTypes() throws SQLException {
-        // Test adding different user types and their default statuses
         User student = new User("student2@example.com", "pass", UserType.STUDENT, true);
         User visitor = new User("visitor2@example.com", "pass", UserType.VISITOR, false);
         User manager = new User("manager@example.com", "pass", UserType.MANAGER, false);
 
-        // Mock that no users exist yet
-        when(UserDAO.getUser(any(User.class))).thenReturn(null);
+        when(mockPreparedStatement.executeUpdate()).thenReturn(1);
 
-        // Add student (should be PENDING)
         UserDAO.addUser(student);
+        UserDAO.addUser(visitor);
+        UserDAO.addUser(manager);
+
+        verify(mockPreparedStatement, times(3)).setInt(eq(1), anyInt());
+        verify(mockPreparedStatement).setString(2, "student2@example.com");
         verify(mockPreparedStatement).setString(3, "STUDENT");
         verify(mockPreparedStatement).setString(4, "PENDING");
+        verify(mockPreparedStatement).setString(5, "pass");
 
-        // Add visitor (should be APPROVED)
-        UserDAO.addUser(visitor);
+        verify(mockPreparedStatement).setString(2, "visitor2@example.com");
         verify(mockPreparedStatement).setString(3, "VISITOR");
         verify(mockPreparedStatement).setString(4, "APPROVED");
+        verify(mockPreparedStatement).setString(5, "pass");
 
-        // Add manager (should be APPROVED)
-        UserDAO.addUser(manager);
+        verify(mockPreparedStatement).setString(2, "manager@example.com");
         verify(mockPreparedStatement).setString(3, "MANAGER");
         verify(mockPreparedStatement).setString(4, "APPROVED");
+        verify(mockPreparedStatement).setString(5, "pass");
+
+        verify(mockPreparedStatement, times(3)).executeUpdate();
     }
 
     @Test
     void testApprovePendingUser() throws SQLException {
-        // Arrange - student is PENDING by default
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("email")).thenReturn("student@example.com");
         when(mockResultSet.getString("password")).thenReturn("password123");
@@ -119,45 +216,42 @@ class UserDAOTest {
         when(mockResultSet.getInt("id")).thenReturn(1);
 
         User pendingUser = UserDAO.getUser("student@example.com");
+
+        assertNotNull(pendingUser);
         assertTrue(pendingUser.isPendingValidation());
 
-        // Act
         UserDAO.approveUser(pendingUser);
 
-        // Assert
         verify(mockPreparedStatement).setString(1, "APPROVED");
         verify(mockPreparedStatement).setString(2, "student@example.com");
     }
 
     @Test
     void testGetPendingUsersWithMixedStatus() throws SQLException {
-        // Arrange
         when(mockResultSet.next()).thenReturn(true, true, true, false);
         when(mockResultSet.getString("email")).thenReturn(
                 "student@example.com",
                 "faculty@example.com",
-                "visitor@example.com" // This one shouldn't appear in results
+                "visitor@example.com",
+                "visitor2@example.com"
         );
-        when(mockResultSet.getString("password")).thenReturn("pass1", "pass2", "pass3");
-        when(mockResultSet.getString("user_type")).thenReturn("STUDENT", "FACULTY", "VISITOR");
-        when(mockResultSet.getString("status")).thenReturn("PENDING", "PENDING", "APPROVED");
+        when(mockResultSet.getString("password")).thenReturn("pass1", "pass2", "pass3", "pass4");
+        when(mockResultSet.getString("user_type")).thenReturn("STUDENT", "FACULTY", "VISITOR", "VISITOR");
+        when(mockResultSet.getString("status")).thenReturn("PENDING", "PENDING", "APPROVED", "APPROVED");
 
-        // Act
         ArrayList<User> result = UserDAO.getPendingUsers();
 
-        // Assert - should only get PENDING users (student and faculty)
-        assertEquals(2, result.size());
+        assertEquals(3, result.size());
         assertEquals("student@example.com", result.get(0).getEmail());
         assertEquals("faculty@example.com", result.get(1).getEmail());
         assertTrue(result.get(0).isPendingValidation());
         assertTrue(result.get(1).isPendingValidation());
-        assertEquals(5.0, result.get(0).getUserType().getHourlyRate()); // STUDENT rate
-        assertEquals(8.0, result.get(1).getUserType().getHourlyRate()); // FACULTY rate
+        assertEquals(5.0, result.get(0).getUserType().getHourlyRate());
+        assertEquals(8.0, result.get(1).getUserType().getHourlyRate());
     }
 
     @Test
     void testUserTypeStatusLogic() {
-        // Directly test the UserType enum's status logic
         assertEquals("PENDING", UserType.STUDENT.getStatus());
         assertEquals("PENDING", UserType.FACULTY.getStatus());
         assertEquals("PENDING", UserType.STAFF.getStatus());

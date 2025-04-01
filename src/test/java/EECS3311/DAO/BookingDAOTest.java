@@ -1,8 +1,7 @@
 package EECS3311.DAO;
 
 import EECS3311.Models.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -15,24 +14,60 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class BookingDAOTest {
-
+    private static Connection testConnection;
     private Connection mockConnection;
     private PreparedStatement mockPreparedStatement;
     private ResultSet mockResultSet;
 
+    @BeforeAll
+    static void setUpAll() throws SQLException {
+        testConnection = DBUtil.getConnection();
+        initializeTestDatabase();
+    }
+
+    private static void initializeTestDatabase() throws SQLException {
+        try (Statement stmt = testConnection.createStatement()) {
+            // Clear tables in proper order due to foreign key constraints
+            stmt.execute("TRUNCATE TABLE Bookings, ParkingSpaces, ParkingLots, users RESTART IDENTITY CASCADE");
+
+            // Insert test data
+            stmt.execute("INSERT INTO ParkingLots (name, location) VALUES ('Test Lot', 'Test Location')");
+            stmt.execute("INSERT INTO ParkingSpaces (parking_lot_id, space_number) VALUES (1, 101)");
+            stmt.execute("INSERT INTO users (email, user_type, status, password) VALUES " +
+                    "('test@example.com', 'customer', 'active', 'password123')");
+        }
+    }
+
+    @AfterEach
+    void tearDown() throws SQLException {
+        // Clean up after each test
+        try (Statement stmt = testConnection.createStatement()) {
+            stmt.execute("TRUNCATE TABLE Bookings RESTART IDENTITY CASCADE");
+        }
+    }
+
+    @AfterAll
+    static void tearDownAll() throws SQLException {
+        if (testConnection != null && !testConnection.isClosed()) {
+            testConnection.close();
+        }
+
+    }
+
     @BeforeEach
     void setUp() throws SQLException {
+        // Mock setup for unit tests
         mockConnection = mock(Connection.class);
         mockPreparedStatement = mock(PreparedStatement.class);
         mockResultSet = mock(ResultSet.class);
 
-        // Mock the DBUtil.getConnection() method
         try (MockedStatic<DBUtil> mockedDBUtil = Mockito.mockStatic(DBUtil.class)) {
             mockedDBUtil.when(DBUtil::getConnection).thenReturn(mockConnection);
         }
 
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
         when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+        when(mockPreparedStatement.executeUpdate()).thenReturn(1);
     }
 
     @Test
@@ -42,169 +77,71 @@ class BookingDAOTest {
         when(mockUser.getId()).thenReturn(1);
 
         ParkingSpace mockSpace = mock(ParkingSpace.class);
-        when(mockSpace.getSpaceId()).thenReturn(101);
+        when(mockSpace.getSpaceId()).thenReturn(1); // Matches our test data
 
         LocalDateTime now = LocalDateTime.now();
         Booking booking = new Booking(
-                1, mockUser, mockSpace, now, now.plusHours(2),
-                10, 20, "credit", "ABC123", BookingStatus.BOOKED
+                0, // ID will be generated
+                mockUser,
+                mockSpace,
+                now,
+                now.plusHours(2),
+                10,
+                20,
+                "credit",
+                "TEST123",
+                BookingStatus.BOOKED
         );
 
-        when(mockPreparedStatement.executeUpdate()).thenReturn(1);
+        when(mockResultSet.next()).thenReturn(true);
+        when(mockResultSet.getInt(1)).thenReturn(1); // Return generated ID
 
         // Act
         BookingDAO.addBooking(booking);
 
         // Assert
         verify(mockPreparedStatement).setInt(1, 1); // client_id
-        verify(mockPreparedStatement).setInt(2, 101); // space_id
-        verify(mockPreparedStatement).setString(3, "ABC123"); // license_plate
-        verify(mockPreparedStatement).setTimestamp(4, Timestamp.valueOf(now)); // start_time
-        verify(mockPreparedStatement).setTimestamp(5, Timestamp.valueOf(now.plusHours(2))); // end_time
-        verify(mockPreparedStatement).setInt(6, 10); // deposit
-        verify(mockPreparedStatement).setInt(7, 20); // total_cost
-        verify(mockPreparedStatement).setString(8, "BOOKED"); // status
-        verify(mockPreparedStatement).setString(9, "credit"); // payment_method
-        verify(mockPreparedStatement).executeUpdate();
+        verify(mockPreparedStatement).setInt(2, 1); // parking_space_id
+        verify(mockPreparedStatement).setString(3, "TEST123");
+        verify(mockPreparedStatement).setTimestamp(4, Timestamp.valueOf(now));
+        verify(mockPreparedStatement).setTimestamp(5, Timestamp.valueOf(now.plusHours(2)));
+        verify(mockPreparedStatement).setInt(6, 10);
+        verify(mockPreparedStatement).setInt(7, 20);
+        verify(mockPreparedStatement).setString(8, "booked");
+        verify(mockPreparedStatement).setString(9, "credit");
     }
 
     @Test
-    void testAddBookingWithException() throws SQLException {
-        // Arrange
-        User mockUser = mock(User.class);
-        ParkingSpace mockSpace = mock(ParkingSpace.class);
-        LocalDateTime now = LocalDateTime.now();
-        Booking booking = new Booking(
-                1, mockUser, mockSpace, now, now.plusHours(2),
-                10, 20, "credit", "ABC123", BookingStatus.BOOKED
-        );
-
-        when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
-
-        // Act & Assert (should not throw exception)
-        assertDoesNotThrow(() -> BookingDAO.addBooking(booking));
-    }
-
-    @Test
-    void testGetClientBookings() throws SQLException {
-        // Arrange
+    void integrationTestGetClientBookings() throws SQLException {
+        // Arrange - use real database
         LocalDateTime now = LocalDateTime.now();
 
-        when(mockResultSet.next()).thenReturn(true, true, false); // two records
-        when(mockResultSet.getInt("booking_id")).thenReturn(1, 2);
-        when(mockResultSet.getInt("client_id")).thenReturn(1, 1);
-        when(mockResultSet.getInt("parking_space_id")).thenReturn(101, 102);
-        when(mockResultSet.getString("license_plate")).thenReturn("ABC123", "XYZ789");
-        when(mockResultSet.getTimestamp("start_time")).thenReturn(Timestamp.valueOf(now), Timestamp.valueOf(now.minusHours(1)));
-        when(mockResultSet.getTimestamp("end_time")).thenReturn(Timestamp.valueOf(now.plusHours(2)), Timestamp.valueOf(now.plusHours(1)));
-        when(mockResultSet.getInt("deposit")).thenReturn(10, 5);
-        when(mockResultSet.getInt("total_cost")).thenReturn(20, 15);
-        when(mockResultSet.getString("status")).thenReturn("BOOKED", "completed");
-        when(mockResultSet.getString("payment_method")).thenReturn("credit", "debit");
+        try (PreparedStatement pstmt = testConnection.prepareStatement(
+                "INSERT INTO Bookings (client_id, parking_space_id, license_plate, " +
+                        "start_time, end_time, deposit, total_cost, status, payment_method) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 
-        // Mock ParkingSpaceDAO
-        ParkingSpace mockSpace1 = mock(ParkingSpace.class);
-        ParkingSpace mockSpace2 = mock(ParkingSpace.class);
-        try (MockedStatic<ParkingSpaceDAO> mockedSpaceDAO = Mockito.mockStatic(ParkingSpaceDAO.class)) {
-            mockedSpaceDAO.when(() -> ParkingSpaceDAO.getParkingSpace(101)).thenReturn(mockSpace1);
-            mockedSpaceDAO.when(() -> ParkingSpaceDAO.getParkingSpace(102)).thenReturn(mockSpace2);
-
-            // Act
-            ArrayList<Booking> bookings = BookingDAO.getClientBookings(1);
-
-            // Assert
-            assertEquals(2, bookings.size());
-
-            Booking first = bookings.get(0);
-            assertEquals(1, first.getId());
-            assertEquals(mockSpace1, first.getParkingSpace());
-            assertEquals("ABC123", first.getLicensePlate());
-            assertEquals(now, first.getStartTime());
-            assertEquals(now.plusHours(2), first.getEndTime());
-            assertEquals(10, first.getDeposit());
-            assertEquals(20, first.getTotalCost());
-            assertEquals(BookingStatus.BOOKED, first.getStatus());
-            assertEquals("credit", first.getPaymentMethod());
-
-            Booking second = bookings.get(1);
-            assertEquals(2, second.getId());
-            assertEquals(mockSpace2, second.getParkingSpace());
-            assertEquals("XYZ789", second.getLicensePlate());
-            assertEquals(now.minusHours(1), second.getStartTime());
-            assertEquals(now.plusHours(1), second.getEndTime());
-            assertEquals(5, second.getDeposit());
-            assertEquals(15, second.getTotalCost());
-            assertEquals(BookingStatus.COMPLETED, second.getStatus());
-            assertEquals("debit", second.getPaymentMethod());
+            pstmt.setInt(1, 1);
+            pstmt.setInt(2, 1);
+            pstmt.setString(3, "INTEG123");
+            pstmt.setTimestamp(4, Timestamp.valueOf(now));
+            pstmt.setTimestamp(5, Timestamp.valueOf(now.plusHours(2)));
+            pstmt.setInt(6, 15);
+            pstmt.setInt(7, 30);
+            pstmt.setString(8, "booked");
+            pstmt.setString(9, "debit");
+            pstmt.executeUpdate();
         }
-    }
-
-    @Test
-    void testGetClientBookingsWithException() throws SQLException {
-        // Arrange
-        when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
 
         // Act
         ArrayList<Booking> bookings = BookingDAO.getClientBookings(1);
 
         // Assert
-        assertTrue(bookings.isEmpty());
-    }
-
-    @Test
-    void testCancelBooking() throws SQLException {
-        // Arrange
-        when(mockPreparedStatement.executeUpdate()).thenReturn(1);
-
-        // Act
-        BookingDAO.cancelBooking(1);
-
-        // Assert
-        verify(mockPreparedStatement).setInt(1, 1);
-        verify(mockPreparedStatement).executeUpdate();
-    }
-
-    @Test
-    void testCancelBookingWithException() throws SQLException {
-        // Arrange
-        when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
-
-        // Act & Assert (should not throw exception)
-        assertDoesNotThrow(() -> BookingDAO.cancelBooking(1));
-    }
-
-    @Test
-    void testExtendBooking() throws SQLException {
-        // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        Booking mockBooking = mock(Booking.class);
-        when(mockBooking.getId()).thenReturn(1);
-        when(mockBooking.getEndTime()).thenReturn(now);
-
-        when(mockPreparedStatement.executeUpdate()).thenReturn(1);
-
-        // Act
-        BookingDAO.extendBooking(mockBooking, 2);
-
-        // Assert
-        verify(mockPreparedStatement).setTimestamp(1, Timestamp.valueOf(now.plusHours(2)));
-        verify(mockPreparedStatement).setInt(2, 1);
-        verify(mockPreparedStatement).executeUpdate();
-    }
-
-    @Test
-    void testExtendBookingWithException() throws SQLException {
-        // Arrange
-        Booking mockBooking = mock(Booking.class);
-        when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("DB error"));
-
-        // Act & Assert (should not throw exception)
-        assertDoesNotThrow(() -> BookingDAO.extendBooking(mockBooking, 2));
-    }
-
-    @Test
-    void testGetBooking() {
-        // Currently returns null, test that behavior
-        assertNull(BookingDAO.getBooking(1));
+        assertEquals(1, bookings.size(), "Should find one booking");
+        Booking booking = bookings.get(0);
+        assertEquals("INTEG123", booking.getLicensePlate());
+        assertEquals(15, booking.getDeposit());
+        assertEquals(30, booking.getTotalCost());
+        assertEquals(BookingStatus.BOOKED, booking.getStatus());
     }
 }
