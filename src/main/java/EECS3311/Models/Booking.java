@@ -60,7 +60,7 @@ public class Booking {
     }
 
     public int getDeposit() {
-        return deposit;
+        return Math.max(deposit, 0);
     }
 
     public void setDeposit(int deposit) {
@@ -68,7 +68,7 @@ public class Booking {
     }
 
     public int getTotalCost() {
-        return totalCost;
+        return Math.max(totalCost, 0);
     }
 
     public void setTotalCost(int totalCost) {

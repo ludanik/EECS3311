@@ -53,7 +53,32 @@ public class UserDAO {
     }
 
     public static void addUser(User u) {
-        if (UserDAO.getUser(u) != null) return;
+
+        if (u == null) {
+            throw new NullPointerException("User cannot be null");
+        }
+
+        // Validate individual fields
+        if (u.getEmail() == null) {
+            throw new NullPointerException("Email cannot be null");
+        }
+
+        if (u.getUserType() == null) {
+            throw new NullPointerException("UserType cannot be null");
+        }
+
+        if (u.getPassword() == null) {
+            throw new NullPointerException("Password cannot be null");
+        }
+
+        User existingUser = UserDAO.getUser(u);
+        if (existingUser != null) {
+            if (!existingUser.isPendingValidation()) {
+                throw new IllegalStateException("User with this email is already approved");
+            }
+            throw new RuntimeException("User with this email already exists");
+        }
+
         try {
             Connection c = DBUtil.getConnection();
             PreparedStatement insertStmt = c.prepareStatement("INSERT INTO users(id, email, user_type, status, password) VALUES (?, ?, ?, ?, ?)");
