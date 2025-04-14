@@ -17,7 +17,7 @@ public class BookingDAO {
             Connection c = DBUtil.getConnection();
             PreparedStatement insertStmt = c.prepareStatement(
                     "INSERT INTO bookings(client_id, space_id, license_plate, start_time, end_time, deposit, total_cost, status, payment_method) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             insertStmt.setInt(1, b.getClient().getId());
             insertStmt.setInt(2, b.getParkingSpace().getSpaceId());
@@ -31,14 +31,27 @@ public class BookingDAO {
 
             int insertedRows = insertStmt.executeUpdate();
 
+            if (insertedRows > 0) {
+                ParkingStatus newStatus = (b.getStatus() == BookingStatus.COMPLETED ||
+                        b.getEndTime().isBefore(LocalDateTime.now()))
+                        ? ParkingStatus.AVAILABLE
+                        : ParkingStatus.BOOKED;
 
+                PreparedStatement updateStmt = c.prepareStatement(
+                        "UPDATE parking_spaces SET status = ? WHERE space_id = ?");
+                updateStmt.setString(1, newStatus.toString());
+                updateStmt.setInt(2, b.getParkingSpace().getSpaceId());
 
-            System.out.printf("inserted %s bookings(s)%n", insertedRows);
-        }
-        catch (Exception e) {
+                // Update Java object status
+                b.getParkingSpace().setStatus(newStatus);
+            }
+
+            System.out.printf("Inserted %d booking(s)%n", insertedRows);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     public static ArrayList<Booking> getClientBookings(int clientId) {
         ArrayList<Booking> bookings = new ArrayList<>();
@@ -98,15 +111,15 @@ public class BookingDAO {
     public static void cancelBooking(int id) {
         try {
             Connection c = DBUtil.getConnection();
-            PreparedStatement deleteStmt = c.prepareStatement("DELETE FROM bookings WHERE booking_id = ?");
-            deleteStmt.setInt(1, id);
-            int deletedRows = deleteStmt.executeUpdate();
-            System.out.printf("deleted %s bookings(s)%n", deletedRows);
-        }
-        catch (Exception e) {
+            PreparedStatement updateStmt = c.prepareStatement("UPDATE bookings SET status = 'AVAILABLE' WHERE booking_id = ?");
+            updateStmt.setInt(1, id);
+            int updatedRows = updateStmt.executeUpdate();
+            System.out.printf("updated %s booking(s) to AVAILABLE%n", updatedRows);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     public static void extendBooking(Booking b, int hours) {
         try {

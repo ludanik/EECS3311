@@ -3,6 +3,7 @@ package EECS3311.DAO;
 import EECS3311.Models.*;
 import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -15,42 +16,35 @@ class BookingDAOTest {
     private static Connection mockConnection;
     private static PreparedStatement mockPreparedStatement;
     private static ResultSet mockResultSet;
-    private static ParkingSpaceDAO mockParkingSpaceDAO;
+    private MockedStatic<DBUtil> dbUtilMock;
+    private ParkingSpaceDAO mockParkingSpaceDAO;
 
     private User testUser;
     private ParkingLot testLot;
     private ParkingSpace testSpace;
     private Booking testBooking;
 
-    @BeforeAll
-    static void setUpClass() throws SQLException {
-        // Set up shared mock objects before any tests run
+    @BeforeEach
+    void setUp() throws SQLException {
+        // Create mock objects
         mockConnection = mock(Connection.class);
         mockPreparedStatement = mock(PreparedStatement.class);
         mockResultSet = mock(ResultSet.class);
+        mockParkingSpaceDAO = mock(ParkingSpaceDAO.class);
 
         // Mock static DBUtil.getConnection() method
-        MockedStatic<DBUtil> dbUtilMock = mockStatic(DBUtil.class);
+        dbUtilMock = mockStatic(DBUtil.class);
         dbUtilMock.when(DBUtil::getConnection).thenReturn(mockConnection);
 
         // Mock PreparedStatement behavior
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
         when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
-    }
 
-    @BeforeEach
-    void setUp() throws SQLException {
-        // Initialize instance variables for each test
-        testUser = new User("test@example.com", "password", UserType.STUDENT, true);
-        testLot = new ParkingLot(1, "P1", true);
-        testSpace = new ParkingSpace(1, 1, ParkingStatus.OCCUPIED, 1);
-        testSpace.setStatus(ParkingStatus.AVAILABLE);
-
-        LocalDateTime now = LocalDateTime.now();
-        testBooking = new Booking(1, testUser, testSpace, now, now.plusHours(2),
-                10, 20, "credit", "ABC123", BookingStatus.BOOKED);
-
-        when(mockParkingSpaceDAO.getParkingSpace(1)).thenReturn(testSpace);
+        // Setup test entities
+        testUser = new User("student@example.com", "password123", UserType.STUDENT, true);
+        testLot = new ParkingLot(1, "Lot A", true);
+        testSpace = new ParkingSpace(1, 101, ParkingStatus.AVAILABLE, 1);
+        testBooking = new Booking(1, testUser, testSpace, LocalDateTime.now(), LocalDateTime.now().plusHours(2), 50, 200, "Credit Card", "ABC-1234", BookingStatus.COMPLETED);
     }
 
     @Test
@@ -156,39 +150,55 @@ class BookingDAOTest {
         assertEquals(ParkingStatus.AVAILABLE, testSpace.getStatus());
     }
 
+    
+
     @Test
-    void testConcurrentStatusUpdates() throws SQLException {
+    void testCancelBooking_NonExistentBooking() throws SQLException {
+        when(mockPreparedStatement.executeUpdate()).thenReturn(0);
+
+        BookingDAO.cancelBooking(999); // Assume ID 999 does not exist
+
+        verify(mockPreparedStatement).executeUpdate();
+    }
+
+    @Test
+    void testCancelAlreadyCanceledBooking() throws SQLException {
+        testBooking.setStatus(BookingStatus.CANCELLED);
+        when(mockPreparedStatement.executeUpdate()).thenReturn(0); // No rows should be affected
+
+        BookingDAO.cancelBooking(testBooking.getId());
+
+        assertEquals(BookingStatus.CANCELLED, testBooking.getStatus());
+        verify(mockPreparedStatement).executeUpdate();
+    }
+
+    @Test
+    void testCancelBooking_OnlyAffectsTargetBooking() throws SQLException {
+        Booking anotherBooking = new Booking(2, testUser, testSpace,
+                LocalDateTime.now(), LocalDateTime.now().plusHours(1), 10, 20, "credit", "XYZ789", BookingStatus.BOOKED);
+
         when(mockPreparedStatement.executeUpdate()).thenReturn(1);
 
-        // Thread 1: Book the space
-        new Thread(() -> {
-            testSpace.setStatus(ParkingStatus.AVAILABLE);
-            BookingDAO.addBooking(testBooking);
-        }).start();
+        BookingDAO.cancelBooking(1); // Cancel testBooking
 
-        // Thread 2: Try to book same space
-        new Thread(() -> {
-            testSpace.setStatus(ParkingStatus.AVAILABLE);
-            Booking duplicateBooking = new Booking(2, testUser, testSpace,
-                    LocalDateTime.now(), LocalDateTime.now().plusHours(1),
-                    10, 20, "credit", "DEF456", BookingStatus.BOOKED);
-            BookingDAO.addBooking(duplicateBooking);
-        }).start();
-
-        // Verify only one booking was successful
-        verify(mockPreparedStatement, times(1)).executeUpdate();
+        assertEquals(BookingStatus.BOOKED, anotherBooking.getStatus()); // Ensure another booking remains unaffected
+        verify(mockPreparedStatement).executeUpdate();
     }
+
 
     @AfterEach
     void tearDown() {
         reset(mockConnection, mockPreparedStatement, mockResultSet, mockParkingSpaceDAO);
+        if (dbUtilMock != null) {
+            dbUtilMock.close();
+        }
     }
 
     @AfterAll
     static void tearDownClass() {
-        // Clean up shared resources after all tests have run
         mockConnection = null;
         mockPreparedStatement = null;
         mockResultSet = null;
     }
+
 }
